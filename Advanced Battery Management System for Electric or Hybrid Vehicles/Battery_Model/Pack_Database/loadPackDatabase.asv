@@ -1,0 +1,17 @@
+function PackDB = loadPackDatabase()
+%===========================================================
+% Load Commercial Battery Pack Database
+%===========================================================
+
+projectRoot = fileparts(fileparts(mfilename('fullpath')));
+
+filename = fullfile( ...
+    projectRoot,...
+    'Pack_Database',...
+    'Packdata.xlsx');
+
+PackDB = readtable(filename, ...
+    'VariableNamingRule','preserve');
+
+
+end
