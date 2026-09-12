@@ -98,6 +98,8 @@ Battery_Model
 │       └── stepCurrent.m
 │
 ├── SOC
+│   ├── coulombCounting.m
+│   └── OCV_SOC.xlsx
 │
 ├── Tests
 │   ├── testBatteryDesigner.m
