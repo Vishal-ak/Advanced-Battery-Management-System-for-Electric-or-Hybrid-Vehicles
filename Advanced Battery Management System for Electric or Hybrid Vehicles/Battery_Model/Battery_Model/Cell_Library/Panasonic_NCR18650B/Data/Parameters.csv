@@ -1,0 +1,22 @@
+Parameter,Value,Unit
+CellModel,NCR18650B,-
+Chemistry,Lithium-Ion (NCA),-
+NominalVoltage,3.6,V
+MaximumVoltage,4.2,V
+CutoffVoltage,2.5,V
+NominalCapacity,3.35,Ah
+RatedCapacity,3.2,Ah
+MinimumCapacity,3.25,Ah
+StandardChargeCurrent,1.625,A
+PreChargeCurrent,0.32,A
+MaximumContinuousDischargeCurrent,4.875,A
+InternalResistance,0.1,Ohm
+Weight,48.5,g
+Diameter,18.25,mm
+Height,65.1,mm
+ChargeTempMin,0,degC
+ChargeTempMax,40,degC
+DischargeTempMin,-20,degC
+DischargeTempMax,60,degC
+VolumetricEnergyDensity,676,Wh/L
+GravimetricEnergyDensity,243,Wh/kg

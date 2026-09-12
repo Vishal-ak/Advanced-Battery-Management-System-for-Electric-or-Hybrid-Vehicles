@@ -1,0 +1,39 @@
+clc
+clear
+close all
+
+%% Initialize
+
+Battery = initBattery();
+
+Pack = createBatteryPack(Battery,80,6);
+
+%% Cell Values
+
+CellVoltage = 3.72;
+
+CellCurrent = 5;
+
+%% API
+
+Vpack = packVoltage(CellVoltage,Pack);
+
+Ipack = packCurrent(CellCurrent,Pack);
+
+Power = packPower(Vpack,Ipack);
+
+[EWh,EkWh] = packEnergy(Vpack,Pack.Capacity);
+
+%% Display
+
+fprintf("\n===============================\n");
+fprintf(" Battery Pack API Test\n");
+fprintf("===============================\n");
+
+fprintf("Pack Voltage : %.2f V\n",Vpack);
+fprintf("Pack Current : %.2f A\n",Ipack);
+fprintf("Pack Power   : %.2f W\n",Power);
+fprintf("Pack Energy  : %.2f Wh\n",EWh);
+fprintf("Pack Energy  : %.2f kWh\n",EkWh);
+
+fprintf("===============================\n");
