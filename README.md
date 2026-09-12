@@ -63,7 +63,7 @@ Battery_Model
 │       ├── Documentation
 │       ├── Results
 │       └── Scripts
-│             └── initCell.m
+│           └── initCell.m
 │
 ├── Cell_Model
 │   ├── ECM
