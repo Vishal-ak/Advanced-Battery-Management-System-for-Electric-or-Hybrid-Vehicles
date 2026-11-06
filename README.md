@@ -542,10 +542,19 @@ development.
 
 # 🚀 Quick Start
 
-## 1. Initialize the Battery
+## 1. Configure the MATLAB project and initialize the battery
+
+From the canonical `Battery_Model` folder, run:
 
 ```matlab
+setupProject();
 Battery = initBattery();
+```
+
+Run the automated unit tests with:
+
+```matlab
+results = runAllTests();
 ```
 
 ## 2. Design a Battery Pack
