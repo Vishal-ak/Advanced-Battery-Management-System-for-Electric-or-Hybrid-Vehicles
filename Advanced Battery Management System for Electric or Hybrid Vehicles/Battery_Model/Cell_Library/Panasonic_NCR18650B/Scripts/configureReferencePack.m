@@ -7,7 +7,7 @@ Battery = initBattery();
 
 %% Cell Parameters
 
-Capacity = Battery.NominalCapacity;      % Ah
+Capacity = Battery.DesignCapacity;       % Ah
 Q = Capacity * 3600;                     % Coulombs
 
 NominalVoltage = Battery.NominalVoltage;
