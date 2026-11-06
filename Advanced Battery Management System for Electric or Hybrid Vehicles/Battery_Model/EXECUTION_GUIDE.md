@@ -161,7 +161,9 @@ Run individual scripts first when debugging. Some scripts clear the workspace an
 
 | File | Purpose | Current status |
 |---|---|---|
-| Parameters/initBattery.m | Initialize cell parameters and OCV data | Existing function |
+| Parameters/initBattery.m | Canonical cell-parameter initializer and OCV data loader | Existing function |
+| Cell_Library/Panasonic_NCR18650B/Scripts/configureReferencePack.m | Configure a reference 80S1P pack using the canonical initializer | Legacy pack-configuration script, renamed to avoid initializer ambiguity |
+| runAllTests.m | Run the automated unit-test suite | New test runner |
 | SOC/coulombCounting.m | SOC by Coulomb counting | Existing function |
 | Cell_Model/ECM/batteryECM.m | 1RC ECM voltage prediction | Existing function |
 | Cell_Model/Thermal/updateTemperature.m | Lumped thermal update | Existing function |
