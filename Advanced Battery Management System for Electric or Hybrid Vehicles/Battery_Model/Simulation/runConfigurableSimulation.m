@@ -4,6 +4,7 @@ function Results = runConfigurableSimulation(Config)
 B=Config.Battery; P=Config.Pack; dt=diff(t);
 % ECM requires cell OCV-vs-SOC data but pack-scaled impedance and voltage limits.
 E=B; E.R0=P.R0; E.R1=P.R1; E.C1=P.C1;
+E.OCV_Table=B.OCV_Table*P.Ns;
 E.MaximumVoltage=P.MaximumVoltage; E.CutoffVoltage=P.CutoffVoltage;
 SOC=zeros(N,1); V=zeros(N,1); OCV=zeros(N,1); Temp=zeros(N,1); Vrc=zeros(N,1);
 Heat=zeros(N,1); over=false(N,1); under=false(N,1);
