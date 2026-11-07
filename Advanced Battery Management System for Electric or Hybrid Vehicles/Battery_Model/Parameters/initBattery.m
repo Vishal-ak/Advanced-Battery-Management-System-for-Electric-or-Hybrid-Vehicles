@@ -21,14 +21,14 @@ Battery.dataFolder = fullfile( ...
 
 Battery.CellModel = "Panasonic NCR18650B-H00BA";
 Battery.Manufacturer = "Panasonic";
-Battery.Chemistry = "Lithium-Ion (NCA)";
+Battery.Chemistry = "Lithium-Ion (NCA; commonly identified, not explicitly stated in cited cell datasheet)";
 Battery.CellType = "18650 Cylindrical";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ELECTRICAL PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.NominalVoltage = 3.7;      % V
+Battery.NominalVoltage = 3.6;      % V (manufacturer datasheet)
 Battery.MaximumVoltage = 4.2;      % V
 Battery.CutoffVoltage  = 2.5;      % V
 
@@ -38,10 +38,10 @@ Battery.TypicalCapacity = 3.35;    % Ah
 % Use this throughout the project
 Battery.DesignCapacity = Battery.TypicalCapacity;
 
-Battery.InternalResistance = 0.05; % Ohm
+Battery.InternalResistance = 0.05; % Ohm (project model parameter; not datasheet-verified DC resistance)
 
-Battery.StandardChargeCurrent = 1.65; % A
-Battery.MaxDischargeCurrent = 5.0;    % A
+Battery.StandardChargeCurrent = 1.625; % A (manufacturer standard charge current)
+Battery.MaxDischargeCurrent = 5.0;    % A (project-configured conservative limit; verify for cell/batch/application)
 
 Battery.CapacityCoulomb = ...
     Battery.DesignCapacity * 3600;
@@ -50,7 +50,7 @@ Battery.CapacityCoulomb = ...
 %% PHYSICAL PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.Mass = 0.0485;         % kg
+Battery.Mass = 0.0475;         % kg (datasheet approximate cell weight)
 
 Battery.Diameter = 18.25;      % mm
 Battery.Height = 65.10;        % mm
@@ -75,9 +75,9 @@ Battery.Volume_L = ...
 %% THERMAL PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.SpecificHeat = 900;      % J/kg-K
+Battery.SpecificHeat = 900;      % J/kg-K (project estimate; verify experimentally)
 
-Battery.ThermalResistance = 5;   % K/W
+Battery.ThermalResistance = 5;   % K/W (project estimate; requires thermal characterization)
 
 Battery.InitialTemperature = 25; % °C
 
