@@ -9,11 +9,11 @@ if ~p(idx).Loadable, error('BMS:CellProfileLoaderMissing','Profile %s has no sta
 if strcmp(cellID,'Panasonic_NCR18650B')
  Battery=initBattery();
 else
- % All profile loaders use the same entry-point name; prioritize the selected folder.
  loaderFolder=fullfile(p(idx).Folder,'Scripts');
- addpath(loaderFolder,'-begin'); clear initCellProfile;
- cleanup=onCleanup(@() clear('initCellProfile')); %#ok<NASGU>
+ addpath(loaderFolder,'-begin');
+ clear initCellProfile;
  Battery=initCellProfile();
+ clear initCellProfile;
 end
 if ~isstruct(Battery)||~isfield(Battery,'OCV_Table')||~isfield(Battery,'SOC_Table')
  error('BMS:InvalidCellProfile','Loader must return Battery with SOC_Table and OCV_Table.');
