@@ -1,33 +1,44 @@
 # Battery Management System — MATLAB Project
 
-This directory is the canonical MATLAB source tree for the HEV/EV battery modelling project.
+This folder is the canonical MATLAB source tree for the EV/HEV battery modelling project.
 
-## Start here
+## Quick start
 
-1. Open this folder as the MATLAB Current Folder.
-2. Run: projectPaths = setupProject();
-3. Follow EXECUTION_GUIDE.md for the step-by-step execution sequence, script descriptions, outputs and known limitations.
+From this folder in MATLAB:
+
+```matlab
+projectPaths = setupProject();
+Battery = initBattery();
+results = runAllTests();
+```
+
+Run demonstrations individually using the sequence in [EXECUTION_GUIDE.md](EXECUTION_GUIDE.md).
 
 ## Main modules
 
 | Folder | Responsibility |
 |---|---|
-| Parameters | Cell initialization and parameter structure |
-| Cell_Library | Panasonic NCR18650B data and documentation |
-| Cell_Model/ECM | 1RC equivalent-circuit model |
-| Cell_Model/Thermal | Lumped thermal model |
-| SOC | Coulomb-counting SOC update |
-| Simulation/CurrentProfile | Test current profiles |
-| BatteryPack | Pack construction, sizing and validation |
-| Pack_Database | Commercial pack database and recommendation |
-| Tests | Existing demonstration scripts |
+| Parameters | Panasonic NCR18650B cell parameters and data loading |
+| Cell_Library | Cell datasets and reference documentation |
+| Cell_Model/ECM | First-order and optional second-order Thevenin ECM |
+| Cell_Model/Thermal | Lumped thermal model and thermal-management controller |
+| Cell_Model/Aging | Preliminary SOH/aging estimator |
+| SOC | Coulomb counting and EKF SOC estimation |
+| Simulation | Drive-cycle, regenerative-braking and telemetry functions |
+| BatteryPack | Pack sizing, balancing and protection logic |
+| Pack_Database | Commercial pack data and recommendation |
+| Tests | Demonstrations and automated unit tests |
 
-## Directory policy
+## Engineering limitations
 
-The nested Battery_Model/Battery_Model/ folder is a legacy duplicate containing overlapping source files and additional outputs/cache artifacts. The top-level folders listed above are the canonical source. Do not add the nested duplicate to the MATLAB path. Its contents will be reconciled separately before deletion or migration.
+- ECM voltage outputs are physical model predictions and are not clipped. Check the returned status and implement protective action in a supervisory BMS.
+- 2RC parameters and aging-model coefficients are preliminary; identify and validate them against traceable cell test data before making performance claims.
+- Passive balancing and regenerative-braking logic are simplified supervisory demonstrations, not hardware-qualified controls.
+- Pack mass includes cell mass plus configured pack-level BMS, enclosure, busbar and wiring estimates. Replace these estimates with sourced or measured values.
+- Reported volumetric density is based on summed cell-envelope volume; complete-pack volume requires enclosure and hardware geometry.
+- Current pack cost is cell-only and excludes BMS, enclosure, assembly, interconnects and testing.
+- Pack design is a bounded heuristic, not a globally optimal design.
+- No editable integrated Simulink `.slx` model is included in this source tree.
+- MATLAB runtime tests must be executed in MATLAB; code review is not evidence that the tests pass.
 
-## Current implementation scope
-
-The repository currently contains a first-order ECM, Coulomb-counting SOC, a simple lumped thermal model, pack design utilities and a commercial pack database workflow. Advanced SOC/SOH estimation, cell balancing, fault diagnosis and an integrated BMS are planned research extensions, not completed features.
-
-See EXECUTION_GUIDE.md for limitations and the research roadmap.
+Do not describe planned or simplified demonstration features as production-ready BMS functionality.
