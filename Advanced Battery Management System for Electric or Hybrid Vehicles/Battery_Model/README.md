@@ -1,10 +1,8 @@
-# Battery Management System — MATLAB Project
+# Battery Model — MATLAB Project
 
-This folder is the canonical MATLAB source tree for the EV/HEV battery modelling project.
+This is the canonical MATLAB source directory. Open this folder as the MATLAB Current Folder before running project scripts.
 
-## Quick start
-
-From this folder in MATLAB:
+## Start here
 
 ```matlab
 projectPaths = setupProject();
@@ -12,33 +10,35 @@ Battery = initBattery();
 results = runAllTests();
 ```
 
-Run demonstrations individually using the sequence in [EXECUTION_GUIDE.md](EXECUTION_GUIDE.md).
+If the tests are run, inspect the returned `results` array and MATLAB test summary. Do not assume a successful setup or battery initialization means the complete test suite has passed.
 
-## Main modules
+## Documentation
 
-| Folder | Responsibility |
+| Document | Purpose |
 |---|---|
-| Parameters | Panasonic NCR18650B cell parameters and data loading |
-| Cell_Library | Cell datasets and reference documentation |
-| Cell_Model/ECM | First-order and optional second-order Thevenin ECM |
-| Cell_Model/Thermal | Lumped thermal model and thermal-management controller |
-| Cell_Model/Aging | Preliminary SOH/aging estimator |
-| SOC | Coulomb counting and EKF SOC estimation |
-| Simulation | Drive-cycle, regenerative-braking and telemetry functions |
-| BatteryPack | Pack sizing, balancing and protection logic |
-| Pack_Database | Commercial pack data and recommendation |
-| Tests | Demonstrations and automated unit tests |
+| [Execution guide](EXECUTION_GUIDE.md) | Setup, examples, tests and run order |
+| [Model reference](Documentation/MODEL_REFERENCE.md) | Implemented model equations, conventions and assumptions |
+| [Validation status](Documentation/VALIDATION_STATUS.md) | Test scope, evidence requirements and known limitations |
+| [Cell specification](Cell_Library/Panasonic_NCR18650B/Documentation/Cell%20Specification.md) | Reference-cell summary |
+| [Manufacturer datasheets](Cell_Library/Panasonic_NCR18650B/Datasheet/) | Source documents for cell limits and characteristics |
 
-## Engineering limitations
+## Module map
 
-- ECM voltage outputs are physical model predictions and are not clipped. Check the returned status and implement protective action in a supervisory BMS.
-- 2RC parameters and aging-model coefficients are preliminary; identify and validate them against traceable cell test data before making performance claims.
-- Passive balancing and regenerative-braking logic are simplified supervisory demonstrations, not hardware-qualified controls.
-- Pack mass includes cell mass plus configured pack-level BMS, enclosure, busbar and wiring estimates. Replace these estimates with sourced or measured values.
-- Reported volumetric density is based on summed cell-envelope volume; complete-pack volume requires enclosure and hardware geometry.
-- Current pack cost is cell-only and excludes BMS, enclosure, assembly, interconnects and testing.
-- Pack design is a bounded heuristic, not a globally optimal design.
-- No editable integrated Simulink `.slx` model is included in this source tree.
-- MATLAB runtime tests must be executed in MATLAB; code review is not evidence that the tests pass.
+| Directory | Implemented responsibility |
+|---|---|
+| `Parameters` | Initialize reference-cell parameters and load OCV–SOC data |
+| `Cell_Library` | Cell reference data, datasheets and cell setup utilities |
+| `Cell_Model/ECM` | 1RC and optional 2RC Thevenin voltage models |
+| `Cell_Model/Thermal` | Heat-generation and lumped-temperature calculations |
+| `SOC` | Coulomb-counting SOC update |
+| `Simulation/CurrentProfile` | Constant, step, pulse and drive-cycle current profiles |
+| `Simulation` | Simplified regenerative-braking current-limit calculation |
+| `BatteryPack` | Pack creation, sizing, electrical API, balancing demonstration and validation |
+| `Pack_Database` | Commercial pack database processing and recommendation |
+| `Tests` | Demonstration scripts and automated unit tests |
 
-Do not describe planned or simplified demonstration features as production-ready BMS functionality.
+## Important boundaries
+
+This is not a production BMS. The ECM and thermal models are simplified; 2RC parameters and hardware mass allowances need validation. The pack-sizing routine is a bounded heuristic. Passive balancing and regenerative-braking functions are demonstrations, not hardware-qualified controllers. There is no integrated Simulink model or validated EKF/SOH implementation in the tracked source tree.
+
+See [Validation Status](Documentation/VALIDATION_STATUS.md) before using project results in a report or presentation.
