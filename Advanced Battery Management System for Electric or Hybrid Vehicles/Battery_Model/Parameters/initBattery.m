@@ -21,7 +21,8 @@ Battery.dataFolder = fullfile( ...
 
 Battery.CellModel = "Panasonic NCR18650B-H00BA";
 Battery.Manufacturer = "Panasonic";
-Battery.Chemistry = "Lithium-Ion (NCA; commonly identified, not explicitly stated in cited cell datasheet)";
+Battery.Chemistry = "Lithium-Ion (NCA; literature classification)";
+Battery.ChemistryProvenance = "NCA classification reported in peer-reviewed literature; Panasonic datasheet describes NNP technology rather than explicitly naming NCA.";
 Battery.CellType = "18650 Cylindrical";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -120,6 +121,8 @@ Battery.OCV = readtable(fullfile( ...
 
 Battery.SOC_Table = Battery.OCV.SOC;
 Battery.OCV_Table = Battery.OCV.OCV;
+Battery.OCVDataStatus = "11-point SOC-OCV lookup transcribed from Table 2 of Switched Discharge Device for Enhanced Energy Extraction from Li-Ion 18650, Batteries 2023, 9(4), 214. Interpolation is performed by the model; this is published lookup data, not raw laboratory measurements."; 
+Battery.OCVDataReference = "https://www.mdpi.com/2313-0105/9/4/214";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PACK HARDWARE (FOR ESTIMATION)
