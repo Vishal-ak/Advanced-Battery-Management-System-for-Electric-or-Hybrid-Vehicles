@@ -20,6 +20,8 @@ Battery.ThermalParameterStatus="Specific heat and thermal resistance are provisi
 Battery.InitialSOC=1; Battery.MinimumSOC=0.05; Battery.MaximumSOC=1; Battery.InitialSOH=1;
 Battery.MaxCellVoltage=4.20; Battery.MinCellVoltage=2.50;
 Battery.MaxCellTemperature=60; Battery.MinCellTemperature=-40;
+Battery.MinChargeTemperature=0; Battery.MaxChargeTemperature=60;
+Battery.MinDischargeTemperature=-40; Battery.MaxDischargeTemperature=60;
 Battery.OCV=readtable(fullfile(dataFolder,'OCV_SOC.csv'));
 Battery.SOC_Table=Battery.OCV.SOC; Battery.OCV_Table=Battery.OCV.OCV;
 Battery.OCVDataStatus="Pseudo-OCV lookup published for Molicel INR18650P28A at C/20; not a rested equilibrium OCV curve.";
