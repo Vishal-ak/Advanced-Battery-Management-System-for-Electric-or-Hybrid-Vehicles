@@ -21,9 +21,11 @@ Battery.ThermalParameterStatus="Specific heat and thermal resistance are provisi
 Battery.InitialSOC=1; Battery.MinimumSOC=0.05; Battery.MaximumSOC=1; Battery.InitialSOH=1;
 Battery.MaxCellVoltage=4.20; Battery.MinCellVoltage=2.50;
 Battery.MaxCellTemperature=60; Battery.MinCellTemperature=-20;
+Battery.MinChargeTemperature=0; Battery.MaxChargeTemperature=45;
+Battery.MinDischargeTemperature=-20; Battery.MaxDischargeTemperature=60;
 Battery.OCV=readtable(fullfile(dataFolder,'OCV_SOC.csv'));
 Battery.SOC_Table=Battery.OCV.SOC; Battery.OCV_Table=Battery.OCV.OCV;
-Battery.OCVDataStatus="SOC-voltage lookup adapted from foxBMS LG MJ1 SOE lookup; not a new equilibrium OCV measurement.";
+Battery.OCVDataStatus="Illustrative interpolated SOC-voltage placeholder; not sourced from a verified full-cell equilibrium OCV dataset. Replace before quantitative simulation.";
 Battery.CellCost=NaN;
 Battery.BMSWeight=0.25; Battery.EnclosureWeight=0.35; Battery.BusbarWeight=0.15; Battery.WiringWeight=0.10;
 end
