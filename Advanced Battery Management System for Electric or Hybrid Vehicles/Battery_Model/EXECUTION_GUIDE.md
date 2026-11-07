@@ -1,4 +1,4 @@
-# Battery Management System — Execution Guide
+# MATLAB Execution Guide
 
 ## 1. Setup
 

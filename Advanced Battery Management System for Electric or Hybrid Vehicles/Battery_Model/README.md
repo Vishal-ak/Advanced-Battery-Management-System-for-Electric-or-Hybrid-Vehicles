@@ -1,4 +1,4 @@
-# Battery Management System — MATLAB Project
+# Battery Model — MATLAB Project
 
 This is the canonical MATLAB source tree for the EV/HEV battery modelling project.
 
