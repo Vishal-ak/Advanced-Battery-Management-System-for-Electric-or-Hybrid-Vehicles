@@ -26,6 +26,11 @@ The LG MJ1 profile uses manufacturer specifications (3.635 V nominal, 3.35 Ah mi
 
 ECM and thermal parameters for the new profiles are not all identified from HPPC/thermal tests. The profile structs explicitly mark the provisional values. Do not interpret these as manufacturer-certified dynamic model parameters.
 
+## Panasonic NCR18650B OCV data provenance
+The Panasonic profile now uses the 11-point SOC–OCV lookup (SOC 0–100% in 10% increments) published in Table 2 of [Switched Discharge Device for Enhanced Energy Extraction from Li-Ion 18650](https://www.mdpi.com/2313-0105/9/4/214). The values are stored in `Cell_Library/Panasonic_NCR18650B/Data/OCV_SOC.csv`; the ECM interpolates between these points. This is published lookup data, not a raw lab dataset collected by this project. Do not confuse the table with the separate end-of-SOC-step voltage column in that paper.
+
+The Panasonic chemistry is labelled NCA based on battery literature. The manufacturer datasheet itself describes the cell's cathode technology as NNP, so the exact chemistry terminology should be treated as literature classification rather than a manufacturer datasheet statement.
+
 ## Adding another cell
 Create `Cell_Library/<ID>/Data/OCV_SOC.csv` with `SOC,OCV` columns and `Cell_Library/<ID>/Scripts/initCellProfile.m` returning a scalar Battery struct. Populate required electrical, physical, safety, ECM and thermal fields from traceable sources. The profile loader discovers these folders automatically.
 
