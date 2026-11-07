@@ -1,31 +1,42 @@
-# Battery Management System — Execution Guide
+# MATLAB Execution Guide
 
-This guide describes the currently tracked MATLAB implementation. Planned or simplified features must not be represented as validated production BMS functions.
+This guide applies to the canonical `Battery_Model` directory.
 
-## 1. Configure MATLAB
+## 1. Open and configure the project
 
-Set the Current Folder to the canonical `Battery_Model` directory, then run:
+In MATLAB Online or MATLAB Desktop, set the Current Folder to this directory. Then run:
 
 ```matlab
 projectPaths = setupProject();
 Battery = initBattery();
+
 which initBattery -all
 which batteryECM -all
+which updateRCVoltage -all
 ```
 
-Do not use `genpath` across the repository if duplicate or legacy folders exist; explicit paths reduce function shadowing.
+Confirm that MATLAB resolves each function to the intended project path. Avoid adding every nested directory with `genpath` when duplicate or legacy folders may exist.
 
-## 2. Automated tests
+## 2. Run automated tests
 
 ```matlab
 results = runAllTests();
 ```
 
-The automated suite checks the assertions present in `Tests/Automated_Test_File`. A passing result does not constitute hardware qualification, safety certification or independent model validation.
+The automated tests are located in `Tests/Automated_Test_File`. Review the test summary and any failed or incomplete tests. A passing unit-test suite is not equivalent to experimental model validation, hardware qualification or functional-safety certification.
 
-## 3. Demonstration scripts
+## 3. Initialize and inspect the reference cell
 
-Run each script separately:
+```matlab
+Battery = initBattery();
+disp(Battery)
+```
+
+The initialized structure contains the reference-cell electrical, thermal and physical parameters and the OCV–SOC lookup data used by the models. Check the parameter source and units before changing values.
+
+## 4. Run demonstrations
+
+Run scripts individually from the `Battery_Model` folder:
 
 ```matlab
 run('Tests/testSOC.m')
@@ -40,21 +51,30 @@ run('Tests/testRecommendPack.m')
 run('Tests/testBatteryDesigner.m')
 ```
 
-Some demonstration scripts clear the workspace and close figures.
+Some demonstration scripts clear the workspace, create figures or print extensive console output. Run them one at a time and save any required plots or results deliberately.
 
-## 4. Pack sizing and validation
+## 5. Construct and inspect a pack
 
 ```matlab
 Battery = initBattery();
 Pack = createBatteryPack(Battery,13,6,false);
-Report = validatePack(Pack);
+
+Pack.Configuration
+Pack.NominalVoltage
+Pack.MaximumVoltage
+Pack.CutoffVoltage
+Pack.Capacity
+Pack.Energy_Wh
+Pack.Mass
 ```
 
-The pack mass estimate includes cell mass plus configured BMS, enclosure, busbar and wiring masses. Those hardware values are preliminary assumptions. The cost model remains cell-only. Cell-envelope volume is not the complete external pack volume.
+The pack mass combines cell mass with configured pack-level BMS, enclosure, busbar and wiring allowances. These allowances are estimates. The cost estimate in the design routine is cell-only. Cell-envelope volume is not complete pack volume.
 
-Application limits should be explicit rather than assumed universal:
+## 6. Design and validate a pack
 
 ```matlab
+Pack = designPack(48,20);
+
 Requirements.MaxPackVoltage_V = 60;
 Requirements.MaxPackMass_kg = 5.0;
 Requirements.MaxCellCount = 100;
@@ -62,43 +82,52 @@ Requirements.MinCapacity_Ah = 20;
 Requirements.MinDischargeCurrent_A = 25;
 Requirements.MinTemperature_C = -10;
 Requirements.MaxTemperature_C = 55;
+
 Validation = validatePack(Pack,Requirements);
 ```
 
-The values above are illustrative; replace them with actual system requirements.
+The requirement values above are illustrative only. Replace them with system-level requirements for the intended application. If a requirement is not supplied, the validator does not invent a universal limit.
 
-## 5. ECM prediction and protection
+## 7. Run ECM predictions
 
-First-order ECM:
+First-order model:
 
 ```matlab
 [Vt,Vrc,OCV,Status] = batteryECM(SOC,Current,VrcOld,dt,Battery);
 ```
 
-Second-order ECM:
+Second-order model:
 
 ```matlab
 [Vt,Vrc1,Vrc2,OCV,Status] = batteryECM_2RC( ...
     SOC,Current,Vrc1Old,Vrc2Old,dt,Battery);
 ```
 
-The voltage prediction is intentionally not clipped. Inspect `Status.OverVoltage`, `Status.UnderVoltage` and `Status.WithinVoltageLimits`. A supervisory protection layer must decide whether to inhibit current, derate operation or open contactors. OCV interpolation still extrapolates outside the tabulated SOC range; avoid out-of-range SOC and validate the source data.
+The current convention is positive for discharge and negative for charge. The predicted terminal voltage is not clipped to the cell voltage limits. Inspect `Status.OverVoltage`, `Status.UnderVoltage` and `Status.WithinVoltageLimits`. These flags report a condition; they do not operate contactors or implement a complete protection system.
 
-## 6. Advanced demonstration modules
+The OCV interpolation currently extrapolates outside the lookup-table SOC range. Keep SOC within the characterized range and validate the lookup data before relying on predictions near the endpoints.
 
-- `estimateSOC_EKF`: preliminary two-state EKF; tune process/measurement covariance and validate on independent data.
-- `estimateSOH`: semi-empirical aging demonstration; coefficients require calibration to cell-specific aging tests.
-- `passiveCellBalancing`: idealized shunt logic using (I=V/R); it does not model switching losses or thermal dynamics.
-- `calcRegenerativeBraking`: simplified charge-current limits; not a validated lithium-plating or charge-acceptance model.
-- `bmsProtectionLogic`: demonstration state machine; not an ISO 26262-compliant safety mechanism.
-- `driveCycleDynamics`: synthetic drive-cycle approximation; do not label it a measured WLTP trace unless replaced with the official trace and verified interpolation.
+## 8. Current-profile functions
 
-## 7. Known limitations
+The `Simulation/CurrentProfile` folder contains:
 
-- Cell parameters, 2RC branch values and pack hardware estimates need traceable sources.
-- ECM is fixed-parameter; parameter identification over SOC, temperature and SOH is not yet established.
-- Thermal model is lumped and simplified.
-- SOH, balancing, fault diagnosis and protection logic require independent validation.
-- Pack design is a bounded heuristic.
-- No editable integrated Simulink `.slx` model is tracked.
-- Run all tests in MATLAB Online/Desktop and record the actual test summary before claiming test success.
+- `constantCurrent` — constant current input.
+- `stepCurrent` — step changes in current.
+- `pulseCurrent` — pulse-load profile.
+- `driveCycleCurrent` — current profile derived from a supplied speed/drive-cycle input.
+
+Positive current denotes discharge; negative current denotes charging. Check each function's argument list and units in its MATLAB help text before calling it.
+
+## 9. Known limitations
+
+- The cell model uses fixed parameters; parameter identification versus SOC, temperature and SOH is not implemented as a validated workflow.
+- The 2RC branch values are preliminary.
+- The thermal model is lumped and simplified.
+- SOC estimation currently includes Coulomb counting; a validated EKF implementation is not present in the tracked source tree.
+- A validated SOH estimator, fault-diagnosis system and production protection controller are not present in the tracked source tree.
+- Balancing and regenerative-braking functions are simplified demonstrations.
+- Pack design is a bounded heuristic, not a global optimization.
+- Hardware mass allowances and cell-only cost assumptions need sourced values.
+- No integrated Simulink `.slx` model is tracked.
+
+For the evidence status and limitations of each module, see [Documentation/VALIDATION_STATUS.md](Documentation/VALIDATION_STATUS.md).
