@@ -89,6 +89,10 @@ Battery.R0 = 0.045;
 Battery.R1 = 0.012;
 Battery.C1 = 2400;
 
+% Optional second polarization branch for the 2RC ECM
+Battery.R2 = 0.015;
+Battery.C2 = 8000;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% SOC / SOH
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
