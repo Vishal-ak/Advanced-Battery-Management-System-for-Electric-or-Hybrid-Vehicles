@@ -40,8 +40,8 @@ Battery.DesignCapacity = Battery.TypicalCapacity;
 
 Battery.InternalResistance = 0.10; % Ohm; provisional project-library value
 
-Battery.StandardChargeCurrent = 1.65; % A
-Battery.MaxDischargeCurrent = 5.0;    % A
+Battery.StandardChargeCurrent = 1.625; % A
+Battery.MaxDischargeCurrent = 4.875; % A
 
 Battery.CapacityCoulomb = ...
     Battery.DesignCapacity * 3600;
