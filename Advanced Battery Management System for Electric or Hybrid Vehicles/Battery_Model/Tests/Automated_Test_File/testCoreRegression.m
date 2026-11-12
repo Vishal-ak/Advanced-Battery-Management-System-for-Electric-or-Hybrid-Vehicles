@@ -10,6 +10,8 @@ verifyEqual(testCase,battery.MinimumCapacity,3.25,'AbsTol',1e-12);
 verifyEqual(testCase,battery.TypicalCapacity,3.35,'AbsTol',1e-12);
 verifyEqual(testCase,battery.MaximumVoltage,4.2,'AbsTol',1e-12);
 verifyEqual(testCase,battery.CutoffVoltage,2.5,'AbsTol',1e-12);
+verifyEqual(testCase,battery.StandardChargeCurrent,1.625,'AbsTol',1e-12);
+verifyEqual(testCase,battery.MaxDischargeCurrent,4.875,'AbsTol',1e-12);
 verifyTrue(testCase,all(diff(battery.SOC_Table)>0));
 verifyTrue(testCase,all(diff(battery.OCV_Table)>=0));
 end
