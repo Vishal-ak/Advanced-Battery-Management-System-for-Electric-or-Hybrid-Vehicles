@@ -28,7 +28,7 @@ Battery.CellType = "18650 Cylindrical";
 %% ELECTRICAL PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.NominalVoltage = 3.7;      % V
+Battery.NominalVoltage = 3.6;      % V
 Battery.MaximumVoltage = 4.2;      % V
 Battery.CutoffVoltage  = 2.5;      % V
 
@@ -38,7 +38,7 @@ Battery.TypicalCapacity = 3.35;    % Ah
 % Use this throughout the project
 Battery.DesignCapacity = Battery.TypicalCapacity;
 
-Battery.InternalResistance = 0.05; % Ohm
+Battery.InternalResistance = 0.10; % Ohm; provisional project-library value
 
 Battery.StandardChargeCurrent = 1.65; % A
 Battery.MaxDischargeCurrent = 5.0;    % A
@@ -85,7 +85,7 @@ Battery.InitialTemperature = 25; % °C
 %% ECM PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.R0 = 0.045;
+Battery.R0 = Battery.InternalResistance; % Keep ECM and library resistance consistent
 Battery.R1 = 0.012;
 Battery.C1 = 2400;
 
