@@ -7,6 +7,7 @@
 % Independent cell measurements and documented OCV/parameter provenance
 % are required for physical validation.
 
+function report = verifyCorePriorities()
 projectRoot = fileparts(mfilename('fullpath'));
 cd(projectRoot);
 setupProject();
