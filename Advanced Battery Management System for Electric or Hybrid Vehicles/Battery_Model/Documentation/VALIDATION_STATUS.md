@@ -1,6 +1,6 @@
 # Validation Status and Limitations
 
-**Status date:** 7 November 2026  
+**Status date:** 13 November 2026  
 **Scope:** MATLAB source tree in this repository branch.
 
 This register distinguishes implemented code, automated software tests and engineering validation. These are different levels of evidence.
@@ -11,7 +11,7 @@ This register distinguishes implemented code, automated software tests and engin
 |---|---|---|
 | Reference-cell initialization and OCV lookup | Yes | Code-level; data provenance and parameter accuracy need review |
 | 1RC Thevenin ECM | Yes | Unit and demonstration tests exist; independent model validation not established |
-| 2RC Thevenin ECM | Yes | Optional implementation; added branch parameters are preliminary |
+| 2RC Thevenin ECM | Yes | Missing helper functions restored and input/interface checks added on this branch; analytical unit tests added but MATLAB execution is pending; parameters remain preliminary |
 | Coulomb-counting SOC | Yes | Unit and demonstration tests exist; drift and accuracy need measured validation |
 | EKF SOC estimator | No | Not implemented in the tracked source tree |
 | Lumped thermal model | Yes | Unit and demonstration tests exist; calibration against temperature measurements is not established |
@@ -36,7 +36,7 @@ results = runAllTests();
 
 Record the MATLAB release, date, test count, passed/failed/incomplete counts and any warnings when publishing a test result.
 
-**Important:** A test file being present does not prove that it has been executed. Do not report the suite as passing until the actual MATLAB output has been reviewed. Unit tests check programmed assertions; they do not demonstrate model agreement with physical cells.
+**Important:** A test file being present does not prove that it has been executed. Do not report the suite as passing until the actual MATLAB output has been reviewed. The 2RC regression tests and `verifyCorePriorities.m` have been added on the engineering branch, but this development environment has no MATLAB or GNU Octave runtime; the MATLAB suite has therefore not been executed here. Unit tests check programmed assertions; they do not demonstrate model agreement with physical cells.
 
 ## 3. Engineering assumptions requiring evidence
 
