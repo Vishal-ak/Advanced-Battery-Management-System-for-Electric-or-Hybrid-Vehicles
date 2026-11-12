@@ -17,10 +17,9 @@ Values below are transcribed from the NCR18650B product data sheet, version 13.1
 | Discharge cutoff | 2.50 V | Manufacturer specification |
 | Maximum weight | 48.5 g | Manufacturer specification |
 | Bare-cell dimensions | 18.25 mm diameter, 65.10 mm height | Typical bare-cell dimensions; verify drawing before mechanical design |
-| Operating temperature | Charge 0 to 45 °C; discharge -20 to 60 °C | Manufacturer specification |
+| Temperature limits | Charge 0 to 40 °C; discharge -20 to 60 °C | Repository cell-library entries; verify against the exact datasheet revision |
 
-Source: Panasonic/SANYO NCR18650B datasheet, version 13.11 R1:
-https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/196/Panasonic-NCR18650B-datasheet.pdf
+Primary project source: `Cell_Library/Panasonic_NCR18650B/Data/parameter.txt`. This file is the repository's data register, not independent evidence that the values were measured or transcribed correctly.
 
 ## Model inputs: provisional, not manufacturer-validated
 ECM resistances and capacitances (R0, R1, C1, R2, C2), thermal resistance, specific heat and any single fixed current limit are model inputs. They must be identified or confirmed using traceable cell tests. The repository cell-library parameter file contains a 0.100 Ohm internal-resistance entry. Until its measurement method and conditions are documented, treat this as a provisional project-library value, not a guaranteed Panasonic datasheet value.
