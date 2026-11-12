@@ -18,7 +18,7 @@ function test1RCVoltageEquationAndStatus(testCase)
 battery = initBattery();
 soc = 0.8; current = 2.0; vrc0 = 0.01; dt = 1.0;
 [v,vrc,ocv,status] = batteryECM(soc,current,vrc0,dt,battery);
-expectedVrc = exp(-dt/(battery.R1*battery.C1))*vrc0 + R1placeholder;
+expectedVrc = exp(-dt/(battery.R1*battery.C1))*vrc0 + battery.R1*(1-exp(-dt/(battery.R1*battery.C1)))*current;
 verifyEqual(testCase,vrc,expectedVrc,'AbsTol',1e-12);
 verifyEqual(testCase,v,ocv-current*battery.R0-vrc,'AbsTol',1e-12);
 verifyTrue(testCase,status.WithinVoltageLimits);
