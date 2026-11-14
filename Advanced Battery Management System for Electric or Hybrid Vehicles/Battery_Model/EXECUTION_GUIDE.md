@@ -84,3 +84,20 @@ The numbers above are examples only. Supply values from the actual system requir
 ## 7. Limitations
 
 The EKF and SOH model require parameter identification and validation against independent data. The drive-cycle generator is illustrative. The balancing, protection and thermal-management algorithms are educational prototypes, not certified safety functions. No ISO 26262 compliance is claimed. The pack design search is heuristic. No editable integrated Simulink `.slx` model is included in this source tree.
+
+
+## 8. Figure export and Results organization
+
+All figure-producing demonstration scripts use the shared `saveBMSFigure` utility in the canonical project root. It automatically creates a category folder under `Results`, exports a 300 dpi PNG, saves an editable MATLAB FIG file, and prints both output paths.
+
+Run the current figure-producing demonstrations from the canonical `Battery_Model` directory:
+
+```matlab
+setupProject();
+run('Tests/testECM.m')
+run('Tests/testDynamicECM.m')
+run('Tests/testSOC.m')
+run('Tests/testTemperature.m')
+```
+
+See [RESULTS_AND_FIGURE_MANAGEMENT.md](Documentation/RESULTS_AND_FIGURE_MANAGEMENT.md) for the folder taxonomy, naming convention, reproducibility requirements, and interpretation limitations.
