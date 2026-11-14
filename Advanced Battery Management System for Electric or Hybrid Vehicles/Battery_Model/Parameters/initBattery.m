@@ -32,8 +32,9 @@ Battery.NominalVoltage = 3.6;      % V; Panasonic datasheet
 Battery.MaximumVoltage = 4.2;      % V
 Battery.CutoffVoltage  = 2.5;      % V
 
-Battery.MinimumCapacity = 3.25;    % Ah
-Battery.TypicalCapacity = 3.35;    % Ah
+Battery.RatedCapacity = 3.20;      % Ah; minimum rated capacity at 20 degC
+Battery.MinimumCapacity = 3.25;    % Ah; minimum capacity at 25 degC
+Battery.TypicalCapacity = 3.35;    % Ah; typical capacity at 25 degC
 
 % Use this throughout the project
 Battery.DesignCapacity = Battery.TypicalCapacity;
@@ -125,6 +126,8 @@ Battery.OCV = readtable(fullfile( ...
 Battery.SOC_Table = Battery.OCV.SOC;
 Battery.OCV_Table = Battery.OCV.OCV;
 
+% Source and measurement conditions have not yet been traced.
+Battery.OCVDataStatus = "UNVERIFIED_SOURCE_AND_TEST_CONDITIONS";
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PACK HARDWARE (FOR ESTIMATION)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
