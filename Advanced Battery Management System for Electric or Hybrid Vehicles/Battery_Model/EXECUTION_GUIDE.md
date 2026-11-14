@@ -86,18 +86,21 @@ The numbers above are examples only. Supply values from the actual system requir
 The EKF and SOH model require parameter identification and validation against independent data. The drive-cycle generator is illustrative. The balancing, protection and thermal-management algorithms are educational prototypes, not certified safety functions. No ISO 26262 compliance is claimed. The pack design search is heuristic. No editable integrated Simulink `.slx` model is included in this source tree.
 
 
-## 8. Figure export and Results organization
+## 8. Monitoring dashboard
 
-All figure-producing demonstration scripts use the shared `saveBMSFigure` utility in the canonical project root. It automatically creates a category folder under `Results`, exports a 300 dpi PNG, saves an editable MATLAB FIG file, and prints both output paths.
-
-Run the current figure-producing demonstrations from the canonical `Battery_Model` directory:
+Launch the interactive MATLAB monitoring dashboard from this canonical `Battery_Model` folder:
 
 ```matlab
 setupProject();
-run('Tests/testECM.m')
-run('Tests/testDynamicECM.m')
-run('Tests/testSOC.m')
-run('Tests/testTemperature.m')
+BMSDashboard
 ```
+
+Use the left panel to select 1RC or 2RC, choose a current profile, set initial SOC, simulation duration, time step and ambient temperature, then select **Run simulation**. The Monitoring tab displays terminal voltage and OCV, SOC, current and temperature. The Pack tab calculates series/parallel pack estimates. The Results tab displays the simulation table. Use the export buttons to save simulation data as CSV and plots as PNG plus editable FIG under `Results/Dashboard`.
+
+The dashboard is a simulation monitor, not a live battery-hardware interface. Positive current means discharge. The synthetic dynamic profile is illustrative, not a standardized drive-cycle trace. Pack mass and cell-envelope volume are estimates; the latter excludes enclosure and cooling packaging.
+
+## 9. Figure export and Results organization
+
+The shared `saveBMSFigure` utility creates category folders under `Results`, exports 300 dpi PNG files and saves editable MATLAB FIG files. The dashboard uses this utility for its plot export. Individual legacy demonstration scripts may still contain their own export logic; verify their output paths when using them.
 
 See [RESULTS_AND_FIGURE_MANAGEMENT.md](Documentation/RESULTS_AND_FIGURE_MANAGEMENT.md) for the folder taxonomy, naming convention, reproducibility requirements, and interpretation limitations.
