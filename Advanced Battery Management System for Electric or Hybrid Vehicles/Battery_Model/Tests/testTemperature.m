@@ -8,6 +8,10 @@ close all;
 
 Battery = initBattery();
 
+%% Results Output Directory
+scriptFolder = fileparts(mfilename('fullpath'));
+projectRoot = fileparts(scriptFolder);
+
 %% Simulation Settings
 % Define the simulation time step and total simulation duration.
 
@@ -28,7 +32,7 @@ Temperature(1) = Battery.InitialTemperature;
 % Apply a constant discharge current to evaluate the
 % temperature rise of the battery during operation.
 
-Current = 20;
+Current = 2;  % A; within configured provisional 5 A cell discharge limit
 
 %% Thermal Simulation
 % Calculate heat generation at each time step and update
@@ -59,4 +63,5 @@ grid on
 
 xlabel('Time (s)')
 ylabel('Temperature (°C)')
-title('Battery Temperature Rise')
+title('Battery Temperature Rise - 1RC Lumped Thermal Model')
+saveBMSFigure(fig, projectRoot, 'Thermal', 'Thermal_Cell_Temperature_Rise_2A_300s');
