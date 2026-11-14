@@ -27,7 +27,8 @@ end
 function testIntegrated2RCOutputAndStatus(testCase)
 B = localParameters();
 [Vt,v1,v2,ocv,S] = batteryECM_2RC(0.8,2,0.01,0.005,1,B);
-verifyEqual(testCase,ocv,3.9,'AbsTol',1e-12);
+% At SOC=0.8, linear interpolation of [0,0.5,1] -> [3.0,3.7,4.2] gives 4.0 V.
+verifyEqual(testCase,ocv,4.0,'AbsTol',1e-12);
 verifyGreaterThan(testCase,Vt,2.0);
 verifyLessThan(testCase,Vt,4.2);
 verifyGreaterThan(testCase,v1,0.01);
