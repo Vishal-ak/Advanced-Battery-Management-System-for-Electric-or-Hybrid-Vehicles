@@ -40,7 +40,7 @@ Battery.DesignCapacity = Battery.TypicalCapacity;
 
 Battery.InternalResistance = 0.05; % Ohm; provisional model assumption, not a datasheet DC resistance
 
-Battery.StandardChargeCurrent = 1.65; % A
+Battery.StandardChargeCurrent = 1.625; % A; Panasonic standard charge current
 Battery.MaxDischargeCurrent = 5.0;    % A; provisional project limit, verify before hardware use
 
 Battery.CapacityCoulomb = ...
