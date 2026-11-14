@@ -147,5 +147,5 @@ exportgraphics(fig, fullfile(resultsDir, 'ECM_1RC_State_of_Charge.png'), 'Resolu
 savefig(fig, fullfile(resultsDir, 'ECM_1RC_State_of_Charge.fig'))
 
 
-fprintf('Figures saved to: %s\\n', resultsDir);
-fprintf('Saved 3 figures as PNG (300 dpi) and editable FIG files.\\n');
+fprintf('Figures saved to: %s\n', resultsDir);
+fprintf('Saved 3 figures as PNG (300 dpi) and editable FIG files.\n');
