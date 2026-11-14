@@ -105,8 +105,7 @@ fprintf('====================================================\n');
 % Plot the battery terminal-voltage response during the
 % constant-current discharge simulation.
 
-figure
-
+fig = figure('Name','1RC ECM - Terminal Voltage','Color','w');
 plot(time, Voltage, 'LineWidth', 2)
 
 grid on
@@ -121,8 +120,7 @@ savefig(fig, fullfile(resultsDir, 'ECM_1RC_Terminal_Voltage.fig'))
 % Plot the variation of OCV resulting from the change in
 % battery SOC during the simulation.
 
-figure
-
+fig = figure('Name','1RC ECM - Open Circuit Voltage','Color','w');
 plot(time, OCV, 'LineWidth', 2)
 
 grid on
@@ -137,8 +135,7 @@ savefig(fig, fullfile(resultsDir, 'ECM_1RC_Open_Circuit_Voltage.fig'))
 % Plot the SOC trajectory calculated using Coulomb Counting
 % during the constant-current discharge.
 
-figure
-
+fig = figure('Name','1RC ECM - State of Charge','Color','w');
 plot(time, SOC_History, 'LineWidth', 2)
 
 grid on
@@ -149,49 +146,6 @@ title('1RC ECM - State of Charge')
 exportgraphics(fig, fullfile(resultsDir, 'ECM_1RC_State_of_Charge.png'), 'Resolution', 300);
 savefig(fig, fullfile(resultsDir, 'ECM_1RC_State_of_Charge.fig'))
 
-%% Save Results
-% Save each figure as a high-resolution PNG and an editable MATLAB FIG.
-% Results are organized by model and test scenario:
-% Results/ECM/1RC_ConstantCurrent/
-
-scriptFolder = fileparts(mfilename('fullpath'));
-projectRoot = fileparts(scriptFolder);
-resultFolder = fullfile(projectRoot, 'Results', 'ECM', '1RC_ConstantCurrent');
-
-if ~exist(resultFolder, 'dir')
-    mkdir(resultFolder);
-end
-
-scenarioTag = sprintf('ConstantCurrent_%gA_%gs', Current, T);
-
-% Save terminal-voltage figure.
-figVoltage = findobj('Type', 'figure');
-figVoltage = sort(figVoltage);
-% Figures are created in order: voltage, OCV, SOC.
-if numel(figVoltage) >= 3
-    voltageFig = figVoltage(3);
-    ocvFig = figVoltage(2);
-    socFig = figVoltage(1);
-else
-    error('BMS:MissingFigures', 'Expected three ECM result figures were not created.');
-end
-
-exportgraphics(voltageFig, fullfile(resultFolder, ...
-    ['ECM_1RC_TerminalVoltage_' scenarioTag '.png']), 'Resolution', 300);
-savefig(voltageFig, fullfile(resultFolder, ...
-    ['ECM_1RC_TerminalVoltage_' scenarioTag '.fig']));
-
-exportgraphics(ocvFig, fullfile(resultFolder, ...
-    ['ECM_1RC_OpenCircuitVoltage_' scenarioTag '.png']), 'Resolution', 300);
-savefig(ocvFig, fullfile(resultFolder, ...
-    ['ECM_1RC_OpenCircuitVoltage_' scenarioTag '.fig']));
-
-exportgraphics(socFig, fullfile(resultFolder, ...
-    ['ECM_1RC_StateOfCharge_' scenarioTag '.png']), 'Resolution', 300);
-savefig(socFig, fullfile(resultFolder, ...
-    ['ECM_1RC_StateOfCharge_' scenarioTag '.fig']));
-
-fprintf('\nResults saved in: %s\\n', resultFolder);
-fprintf('Saved 3 figures as PNG (300 dpi) and editable FIG files.\\n');
 
 fprintf('Figures saved to: %s\\n', resultsDir);
+fprintf('Saved 3 figures as PNG (300 dpi) and editable FIG files.\\n');
