@@ -131,7 +131,8 @@ cla(axV); cla(axSOC); cla(axI); cla(axT);
     end
 
     function setMetric(card,value)
-        card.UserData.Text = value;
+        metricLabel = card.UserData;
+        metricLabel.Text = value;
     end
 
     function runSimulation(~,~)
@@ -182,7 +183,6 @@ cla(axV); cla(axSOC); cla(axI); cla(axT);
             setMetric(tempMetric,sprintf('%.2f °C',temp(end)));
             if any(status ~= "NORMAL")
                 setMetric(statusMetric,'CHECK LIMITS');
-                statusMetric.Title = 'BMS status';
             else
                 setMetric(statusMetric,'NORMAL');
             end
@@ -250,21 +250,17 @@ cla(axV); cla(axSOC); cla(axI); cla(axT);
         if isempty(lastResult), uialert(fig,'Run a simulation before exporting plots.','No results'); return; end
         outDir = fullfile(projectRoot,'Results','Dashboard');
         if ~isfolder(outDir), mkdir(outDir); end
-        try
-            exportgraphics(monitorTab,outDir,'Resolution',200);
-        catch
-            % Export the dashboard plots as a standard figure for reliable
-            % compatibility across MATLAB releases.
-            f = figure('Visible','off','Color','w');
-            tiledlayout(f,2,2);
-            a1=nexttile; plot(a1,lastResult.Time_s,lastResult.TerminalVoltage_V); hold(a1,'on'); plot(a1,lastResult.Time_s,lastResult.OCV_V,'--'); title(a1,'Voltage'); xlabel(a1,'Time (s)'); ylabel(a1,'V'); grid(a1,'on');
-            a2=nexttile; plot(a2,lastResult.Time_s,100*lastResult.SOC); title(a2,'SOC'); xlabel(a2,'Time (s)'); ylabel(a2,'%'); grid(a2,'on');
-            a3=nexttile; plot(a3,lastResult.Time_s,lastResult.Current_A); title(a3,'Current'); xlabel(a3,'Time (s)'); ylabel(a3,'A'); grid(a3,'on');
-            a4=nexttile; plot(a4,lastResult.Time_s,lastResult.Temperature_C); title(a4,'Temperature'); xlabel(a4,'Time (s)'); ylabel(a4,'°C'); grid(a4,'on');
-            saveBMSFigure(f,projectRoot,'Dashboard','BMS_Dashboard_Results');
-            close(f);
-            footer.Value = {'Plots exported to Results/Dashboard as PNG and editable FIG.'};
-        end
+        % Export a standalone MATLAB figure so PNG and editable FIG output
+        % are consistent across MATLAB Online releases.
+        f = figure('Visible','off','Color','w');
+        tiledlayout(f,2,2);
+        a1=nexttile; plot(a1,lastResult.Time_s,lastResult.TerminalVoltage_V); hold(a1,'on'); plot(a1,lastResult.Time_s,lastResult.OCV_V,'--'); title(a1,'Voltage'); xlabel(a1,'Time (s)'); ylabel(a1,'V'); grid(a1,'on');
+        a2=nexttile; plot(a2,lastResult.Time_s,100*lastResult.SOC); title(a2,'SOC'); xlabel(a2,'Time (s)'); ylabel(a2,'%'); grid(a2,'on');
+        a3=nexttile; plot(a3,lastResult.Time_s,lastResult.Current_A); title(a3,'Current'); xlabel(a3,'Time (s)'); ylabel(a3,'A'); grid(a3,'on');
+        a4=nexttile; plot(a4,lastResult.Time_s,lastResult.Temperature_C); title(a4,'Temperature'); xlabel(a4,'Time (s)'); ylabel(a4,'°C'); grid(a4,'on');
+        saveBMSFigure(f,projectRoot,'Dashboard','BMS_Dashboard_Results');
+        close(f);
+        footer.Value = {'Plots exported to Results/Dashboard as PNG and editable FIG.'};
     end
 
     function resetDashboard(~,~)
