@@ -40,34 +40,26 @@ Record the MATLAB release, date, test count, passed/failed/incomplete counts and
 
 ## 3. Engineering assumptions requiring evidence
 
-### Cell data and parameters
-- Confirm each parameter against the exact Panasonic datasheet revision or a traceable test.
-- Record whether capacity is typical, rated or minimum and under what test conditions.
-- Internal resistance varies with SOC, temperature, age and measurement method; a single fixed value is an approximation.
-- Verify the OCV–SOC CSV provenance, test temperature, rest duration, charge/discharge direction and SOC calibration.
+### Reference-cell audit — Panasonic NCR18650B
+The parameter initializer on this branch now records the following manufacturer specifications from Panasonic NCR18650B datasheet, Version 13.11 R1 (2012):
+- Nominal voltage: 3.6 V.
+- Rated capacity: minimum 3.20 Ah at 20°C.
+- Capacity at 25°C: minimum 3.25 Ah; typical 3.35 Ah.
+- Standard charge current: 1.625 A; charge voltage: 4.20 V.
+- Maximum cell mass: 48.5 g; maximum bare-cell dimensions: 18.25 mm diameter × 65.10 mm height.
+- Discharge temperature range: −20°C to +60°C; charge temperature range: 0°C to +45°C.
 
-### ECM
-- Identify (R_0), (R_1), (C_1), (R_2) and (C_2) from cell pulse or dynamic test data.
-- Validate voltage prediction on data not used for parameter fitting.
-- Quantify error across SOC, temperature, current and cell age.
-- Confirm sign conventions and numerical stability.
+The project uses typical 3.35 Ah as its design capacity. Rated, minimum and typical capacity are retained as separate fields; they must not be interchanged. The nominal voltage and standard charge current were corrected from 3.7 V and 1.65 A to 3.6 V and 1.625 A.
 
-### Thermal model
-- Validate heat-generation terms and thermal parameters against measured temperature traces.
-- A single-node model cannot resolve internal gradients or predict thermal runaway propagation.
+Still provisional / not manufacturer-verified:
+- Fixed internal resistance and ECM parameters (R0, R1, C1, R2, C2).
+- Maximum discharge current configured in the project (5 A).
+- Specific heat and lumped thermal resistance.
+- OCV_SOC.csv: source, cell lot, test temperature, rest duration, charge/discharge direction and SOC calibration are not documented. The table is therefore marked unverified and must not be described as Panasonic-supplied or experimentally validated.
 
-### Pack design
-- Replace hardware mass allowances with sourced or measured component masses.
-- Distinguish cell-only cost from complete-pack cost.
-- Distinguish cell-envelope volume from complete pack volume.
-- Validate current limits against cell parallel count, interconnects, fusing, cooling and operating conditions.
-- Treat the pack-design score as a heuristic ranking, not a global optimum.
+Datasheet reference: Panasonic NCR18650B, Version 13.11 R1 (2012), reproduced at https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/196/Panasonic-NCR18650B-datasheet.pdf. This is a third-party-hosted copy of the manufacturer document; retain the revision identifier when citing it.
 
-### Balancing and regenerative braking
-- Validate balancing thresholds, resistor power, component temperature and energy loss.
-- Validate regenerative charge-current limits against manufacturer charge limits and measured charge-acceptance data over SOC and temperature.
-- Neither function is suitable as a standalone hardware control policy.
-
+Internal resistance varies with SOC, temperature, age and measurement method; a single fixed value is an approximation. Do not invent or infer provenance for the OCV lookup table.
 ## 4. Claims that must not be made without additional evidence
 
 Do not claim any of the following on the basis of the current repository alone:
