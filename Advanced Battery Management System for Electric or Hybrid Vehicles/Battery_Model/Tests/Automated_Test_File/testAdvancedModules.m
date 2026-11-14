@@ -39,4 +39,3 @@ Pack = createBatteryPack(Battery,13,6,false);
 verifyEqual(testCase,Iregen,0);
 verifyEqual(testCase,eta,0);
 end
-end
