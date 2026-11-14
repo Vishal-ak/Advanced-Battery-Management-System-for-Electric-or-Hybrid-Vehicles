@@ -2,6 +2,10 @@ clc;
 clear;
 close all;
 
+%% Results Output Directory
+scriptFolder = fileparts(mfilename('fullpath'));
+projectRoot = fileparts(scriptFolder);
+
 %% Battery Parameters
 % Define the battery capacity, initial state of charge (SOC),
 % and sampling time used for Coulomb Counting.
@@ -104,7 +108,7 @@ fprintf('========================================\n');
 % Compare the SOC variation with time for constant,
 % step, and pulse current discharge conditions.
 
-figure;
+fig = figure('Name','SOC - Current Profile Comparison','Color','w');
 
 plot(t/60, SOC_constant, 'LineWidth', 2);
 hold on;
@@ -123,3 +127,4 @@ legend('Constant Current', ...
 
 grid on;
 ylim([0 1.05]);
+saveBMSFigure(fig, projectRoot, 'SOC/CoulombCounting', 'SOC_CoulombCounting_CurrentProfile_Comparison');

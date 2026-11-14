@@ -23,6 +23,13 @@ close all
 
 battery = initBattery();
 
+%% Results Output Directory
+% Save this demonstration's figures in a category-specific folder.
+scriptFolder = fileparts(mfilename('fullpath'));
+projectRoot = fileparts(scriptFolder);
+resultsDir = fullfile(projectRoot, 'Results', 'Cell_Model', 'ECM', '1RC');
+
+
 %% Simulation Parameters
 % Define the simulation time step and total simulation duration.
 % The time vector is used to record the battery response.
@@ -42,7 +49,7 @@ Vrc = 0;                 % Initial RC polarization voltage (V)
 
 % Apply a constant discharge current throughout the simulation.
 
-Current = 8;             % Constant discharge current (A)
+Current = 2;             % Constant discharge current (A); within configured provisional 5 A limit
 
 %% Allocate Memory
 % Pre-allocate arrays for storing terminal voltage, open-circuit
@@ -95,40 +102,47 @@ fprintf('====================================================\n');
 % Plot the battery terminal-voltage response during the
 % constant-current discharge simulation.
 
-figure
-
+fig = figure('Name','1RC ECM - Terminal Voltage','Color','w');
 plot(time, Voltage, 'LineWidth', 2)
 
 grid on
 
 xlabel('Time (s)')
 ylabel('Voltage (V)')
-title('Terminal Voltage')
+title('1RC ECM - Terminal Voltage')
+exportgraphics(fig, fullfile(resultsDir, 'ECM_1RC_Terminal_Voltage.png'), 'Resolution', 300);
+savefig(fig, fullfile(resultsDir, 'ECM_1RC_Terminal_Voltage.fig'))
 
 %% Plot Open-Circuit Voltage
 % Plot the variation of OCV resulting from the change in
 % battery SOC during the simulation.
 
-figure
-
+fig = figure('Name','1RC ECM - Open Circuit Voltage','Color','w');
 plot(time, OCV, 'LineWidth', 2)
 
 grid on
 
 xlabel('Time (s)')
 ylabel('OCV (V)')
-title('Open Circuit Voltage')
+title('1RC ECM - Open Circuit Voltage')
+exportgraphics(fig, fullfile(resultsDir, 'ECM_1RC_Open_Circuit_Voltage.png'), 'Resolution', 300);
+savefig(fig, fullfile(resultsDir, 'ECM_1RC_Open_Circuit_Voltage.fig'))
 
 %% Plot State of Charge
 % Plot the SOC trajectory calculated using Coulomb Counting
 % during the constant-current discharge.
 
-figure
-
+fig = figure('Name','1RC ECM - State of Charge','Color','w');
 plot(time, SOC_History, 'LineWidth', 2)
 
 grid on
 
 xlabel('Time (s)')
 ylabel('SOC')
-title('State of Charge')
+title('1RC ECM - State of Charge')
+exportgraphics(fig, fullfile(resultsDir, 'ECM_1RC_State_of_Charge.png'), 'Resolution', 300);
+savefig(fig, fullfile(resultsDir, 'ECM_1RC_State_of_Charge.fig'))
+
+
+fprintf('Figures saved to: %s\n', resultsDir);
+fprintf('Saved 3 figures as PNG (300 dpi) and editable FIG files.\n');

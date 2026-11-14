@@ -23,6 +23,11 @@ close all;
 
 Battery = initBattery();
 
+%% Results Output Directory
+scriptFolder = fileparts(mfilename('fullpath'));
+projectRoot = fileparts(scriptFolder);
+resultsDir = fullfile(projectRoot, 'Results', 'Cell_Model', 'ECM', 'Dynamic');
+
 %% Simulation Settings
 % Define the simulation time step and total simulation duration.
 % The time vector is used to evaluate the battery response
@@ -48,7 +53,11 @@ t = 0:dt:T_end;
 
 % Current = pulseCurrent(t);
 
-Current = driveCycleCurrent(t);
+% The profile generator is a synthetic current shape (not WLTP/UDDS).
+% Scale it to keep this single-cell demonstration within the configured
+% provisional 5 A discharge-current limit.
+profileScale = 0.1;
+Current = profileScale * driveCycleCurrent(t);
 
 %% Initialize Battery State Variables
 % Allocate memory for SOC, terminal voltage, and OCV.
@@ -123,7 +132,8 @@ grid on
 
 xlabel('Time (s)')
 ylabel('Current (A)')
-title('Current Profile')
+title('Dynamic ECM - Current Profile')
+saveBMSFigure(fig, projectRoot, 'Cell_Model/ECM/Dynamic', 'ECM_Dynamic_Current_Profile');
 
 %% Plot Terminal Voltage
 % Plot the battery terminal-voltage response to the selected
@@ -137,7 +147,8 @@ grid on
 
 xlabel('Time (s)')
 ylabel('Voltage (V)')
-title('Terminal Voltage')
+title('Dynamic ECM - Terminal Voltage')
+saveBMSFigure(fig, projectRoot, 'Cell_Model/ECM/Dynamic', 'ECM_Dynamic_Terminal_Voltage');
 
 %% Plot Open-Circuit Voltage
 % Plot the variation of battery OCV resulting from the
@@ -151,7 +162,8 @@ grid on
 
 xlabel('Time (s)')
 ylabel('OCV (V)')
-title('Open Circuit Voltage')
+title('Dynamic ECM - Open Circuit Voltage')
+saveBMSFigure(fig, projectRoot, 'Cell_Model/ECM/Dynamic', 'ECM_Dynamic_Open_Circuit_Voltage');
 
 %% Plot State of Charge
 % Plot the SOC trajectory calculated using Coulomb Counting
@@ -165,4 +177,5 @@ grid on
 
 xlabel('Time (s)')
 ylabel('SOC')
-title('State of Charge')
+title('Dynamic ECM - State of Charge')
+saveBMSFigure(fig, projectRoot, 'Cell_Model/ECM/Dynamic', 'ECM_Dynamic_State_of_Charge');
