@@ -55,7 +55,7 @@ Still provisional / not manufacturer-verified:
 - Fixed internal resistance and ECM parameters (R0, R1, C1, R2, C2).
 - Maximum discharge current configured in the project (5 A).
 - Specific heat and lumped thermal resistance.
-- OCV_SOC.csv: source, cell lot, test temperature, rest duration, charge/discharge direction and SOC calibration are not documented. The table is therefore marked unverified and must not be described as Panasonic-supplied or experimentally validated.
+- OCV_SOC.csv: source, cell lot, test temperature, rest duration, charge/discharge direction and SOC calibration are not documented. The table is therefore marked unverified and must not be described as Panasonic-supplied or experimentally validated. A potentially relevant public dataset is Rüther et al., “Cell-to-Cell-Variations of a Panasonic NCR18650B” (Zenodo DOI 10.5281/zenodo.8369275): it contains 92-cell characterization at 25°C and pseudo-OCV charge/discharge measurements at 0.05C, interpolated to 5000 equidistant SOC points. The repository CSV also has 5000 rows, but row count alone does not establish that it was derived from this dataset. Its values must be compared against the published files before attributing provenance.
 
 Datasheet reference: Panasonic NCR18650B, Version 13.11 R1 (2012), reproduced at https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/196/Panasonic-NCR18650B-datasheet.pdf. This is a third-party-hosted copy of the manufacturer document; retain the revision identifier when citing it.
 
