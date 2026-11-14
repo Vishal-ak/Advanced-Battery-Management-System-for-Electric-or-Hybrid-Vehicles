@@ -28,7 +28,7 @@ Battery.CellType = "18650 Cylindrical";
 %% ELECTRICAL PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.NominalVoltage = 3.7;      % V
+Battery.NominalVoltage = 3.6;      % V; Panasonic datasheet
 Battery.MaximumVoltage = 4.2;      % V
 Battery.CutoffVoltage  = 2.5;      % V
 
@@ -38,10 +38,10 @@ Battery.TypicalCapacity = 3.35;    % Ah
 % Use this throughout the project
 Battery.DesignCapacity = Battery.TypicalCapacity;
 
-Battery.InternalResistance = 0.05; % Ohm
+Battery.InternalResistance = 0.05; % Ohm; provisional model assumption, not a datasheet DC resistance
 
 Battery.StandardChargeCurrent = 1.65; % A
-Battery.MaxDischargeCurrent = 5.0;    % A
+Battery.MaxDischargeCurrent = 5.0;    % A; provisional project limit, verify before hardware use
 
 Battery.CapacityCoulomb = ...
     Battery.DesignCapacity * 3600;
@@ -75,9 +75,9 @@ Battery.Volume_L = ...
 %% THERMAL PARAMETERS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Battery.SpecificHeat = 900;      % J/kg-K
+Battery.SpecificHeat = 900;      % J/kg-K; provisional thermal assumption
 
-Battery.ThermalResistance = 5;   % K/W
+Battery.ThermalResistance = 5;   % K/W; provisional thermal assumption
 
 Battery.InitialTemperature = 25; % °C
 
