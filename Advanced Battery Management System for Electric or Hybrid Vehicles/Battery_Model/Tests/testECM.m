@@ -28,9 +28,6 @@ battery = initBattery();
 scriptFolder = fileparts(mfilename('fullpath'));
 projectRoot = fileparts(scriptFolder);
 resultsDir = fullfile(projectRoot, 'Results', 'Cell_Model', 'ECM', '1RC');
-if ~isfolder(resultsDir)
-    mkdir(resultsDir);
-end
 
 
 %% Simulation Parameters
