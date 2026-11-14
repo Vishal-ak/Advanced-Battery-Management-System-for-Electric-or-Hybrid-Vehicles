@@ -34,7 +34,7 @@ for k = 1:numel(requiredFolders)
 end
 
 % Add required project folders
-addpath(projectPaths{:});
+addpath(projectRoot, projectPaths{:});
 
 % Verify OCV data
 ocvFile = fullfile(projectRoot, 'Cell_Library', ...
