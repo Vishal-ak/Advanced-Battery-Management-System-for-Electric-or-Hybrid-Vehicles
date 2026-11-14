@@ -42,7 +42,7 @@ Vrc = 0;                 % Initial RC polarization voltage (V)
 
 % Apply a constant discharge current throughout the simulation.
 
-Current = 8;             % Constant discharge current (A)
+Current = 2;             % Constant discharge current (A); within configured provisional 5 A limit
 
 %% Allocate Memory
 % Pre-allocate arrays for storing terminal voltage, open-circuit
@@ -132,3 +132,48 @@ grid on
 xlabel('Time (s)')
 ylabel('SOC')
 title('State of Charge')
+
+%% Save Results
+% Save each figure as a high-resolution PNG and an editable MATLAB FIG.
+% Results are organized by model and test scenario:
+% Results/ECM/1RC_ConstantCurrent/
+
+scriptFolder = fileparts(mfilename('fullpath'));
+projectRoot = fileparts(scriptFolder);
+resultFolder = fullfile(projectRoot, 'Results', 'ECM', '1RC_ConstantCurrent');
+
+if ~exist(resultFolder, 'dir')
+    mkdir(resultFolder);
+end
+
+scenarioTag = sprintf('ConstantCurrent_%gA_%gs', Current, T);
+
+% Save terminal-voltage figure.
+figVoltage = findobj('Type', 'figure');
+figVoltage = sort(figVoltage);
+% Figures are created in order: voltage, OCV, SOC.
+if numel(figVoltage) >= 3
+    voltageFig = figVoltage(3);
+    ocvFig = figVoltage(2);
+    socFig = figVoltage(1);
+else
+    error('BMS:MissingFigures', 'Expected three ECM result figures were not created.');
+end
+
+exportgraphics(voltageFig, fullfile(resultFolder, ...
+    ['ECM_1RC_TerminalVoltage_' scenarioTag '.png']), 'Resolution', 300);
+savefig(voltageFig, fullfile(resultFolder, ...
+    ['ECM_1RC_TerminalVoltage_' scenarioTag '.fig']));
+
+exportgraphics(ocvFig, fullfile(resultFolder, ...
+    ['ECM_1RC_OpenCircuitVoltage_' scenarioTag '.png']), 'Resolution', 300);
+savefig(ocvFig, fullfile(resultFolder, ...
+    ['ECM_1RC_OpenCircuitVoltage_' scenarioTag '.fig']));
+
+exportgraphics(socFig, fullfile(resultFolder, ...
+    ['ECM_1RC_StateOfCharge_' scenarioTag '.png']), 'Resolution', 300);
+savefig(socFig, fullfile(resultFolder, ...
+    ['ECM_1RC_StateOfCharge_' scenarioTag '.fig']));
+
+fprintf('\nResults saved in: %s\\n', resultFolder);
+fprintf('Saved 3 figures as PNG (300 dpi) and editable FIG files.\\n');
