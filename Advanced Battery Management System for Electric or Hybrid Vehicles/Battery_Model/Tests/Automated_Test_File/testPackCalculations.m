@@ -47,3 +47,14 @@ Result = validatePack(Pack);
 verifyFalse(testCase,Result.IsValid);
 verifyNotEmpty(testCase,Result.Errors);
 end
+
+function testPackUtilityArithmetic(testCase)
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+verifyEqual(testCase,packVoltage(Battery.NominalVoltage,Pack),46.8,'AbsTol',1e-12);
+verifyEqual(testCase,packCurrent(2,Pack),12,'AbsTol',1e-12);
+verifyEqual(testCase,packPower(46.8,12),561.6,'AbsTol',1e-12);
+[EWh,EkWh] = packEnergy(46.8,20.1);
+verifyEqual(testCase,EWh,940.68,'AbsTol',1e-10);
+verifyEqual(testCase,EkWh,0.94068,'AbsTol',1e-12);
+end
