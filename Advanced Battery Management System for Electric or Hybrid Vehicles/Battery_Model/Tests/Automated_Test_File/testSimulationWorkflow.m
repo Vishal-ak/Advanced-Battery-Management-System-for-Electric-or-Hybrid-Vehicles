@@ -63,8 +63,8 @@ end
 function testSOCUpperBoundaryIsEnforced(testCase)
 Battery = initBattery();
 Pack = createBatteryPack(Battery,13,6,false);
-R = simulateBatteryPack(Battery,Pack,0.99999,25,25,1,130, ...
-    "Synthetic drive cycle");
+R = simulateBatteryPack(Battery,Pack,0.99999,25,25,1,60, ...
+    "Constant charge");
 verifyLessThanOrEqual(testCase,max(R.SOC),Battery.MaximumSOC+1e-12);
 verifyTrue(testCase,any(R.SOCBoundaryLimited));
 end
