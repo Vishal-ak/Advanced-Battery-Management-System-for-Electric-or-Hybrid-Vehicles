@@ -142,6 +142,8 @@ app = struct('Figure',fig,'Battery',Battery, ...
     function runSimulation(~,~)
         runButton.Enable = 'off';
         exportButton.Enable = 'off';
+        lastResults = [];
+        fig.UserData = [];
         statusLabel.Text = 'Running model...';
         drawnow;
 
