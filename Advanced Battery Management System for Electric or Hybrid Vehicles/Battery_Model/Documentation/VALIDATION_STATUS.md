@@ -37,7 +37,7 @@ This register distinguishes source implementation, automated software testing, e
 | Original finding | Correction prepared |
 |---|---|
 | 2RC model called helper functions that were absent | Added `updateRCVoltage_2RC.m` and `terminalVoltage_2RC.m` |
-| ECM and Coulomb-counting functions had incomplete input checks | Added finite-scalar, parameter-domain and SOC validation |
+| ECM, SOC, thermal and pack utility functions had incomplete input checks | Added finite-scalar, parameter-domain, thermal and pack-API validation |
 | OCV lookup data was used without structural checks | Added required-column, vector-shape, finite-data, monotonic-SOC and [0,1] range checks |
 | Legacy reference-cell script used missing `Battery.NominalCapacity` | Replaced with the canonical initializer and pack builder |
 | Old cell setup scripts duplicated a different temporary RC parameter set | Updated to use `initBattery.m` as the runtime parameter source |
@@ -49,7 +49,7 @@ This register distinguishes source implementation, automated software testing, e
 | Test runner left current directory changed | Added cleanup-based directory restoration |
 | Dynamic current profile was fed directly into a single-cell ECM | Added pack-scale simulation service and corrected the demonstration |
 | Regenerative current ignored low-temperature 0.25C instruction | Added pack-level low-temperature charge limit and corresponding tests |
-| No dashboard application existed | Added offline MATLAB simulation dashboard with current, voltage, SOC, temperature and CSV export |
+| No dashboard application existed | Added offline MATLAB simulation dashboard with five profiles, current, voltage, SOC, temperature, SOC-limit metrics and CSV export |
 | New simulation service was not on setup path | Added `Simulation` folder to `setupProject.m` |
 
 ## 3. Reference cell and pack arithmetic
@@ -101,7 +101,8 @@ Automated unit-test files are present under `Tests/Automated_Test_File/`. The co
 - Thermal heat generation and temperature response.
 - Reference-cell and 13S6P pack arithmetic.
 - Heuristic 48 V / 20 Ah pack sizing.
-- Pack current/per-cell current conversion.\n- Lower and upper SOC operating-window current limiting.
+- Pack current/per-cell current conversion.
+- Lower and upper SOC operating-window current limiting.
 - Low-temperature 0.25C charging and charge inhibition.
 - Database capacity/weight/dimension parsing.
 - Regenerative current voltage-headroom, SOC and temperature limits.
