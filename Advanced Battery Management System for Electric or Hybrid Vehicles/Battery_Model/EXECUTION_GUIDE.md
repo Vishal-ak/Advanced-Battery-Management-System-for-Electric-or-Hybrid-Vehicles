@@ -2,31 +2,30 @@
 
 ## 1. Setup
 
-Set MATLAB Current Folder to this `Battery_Model` directory, then run:
+Set MATLAB Current Folder to this canonical `Battery_Model` directory. Run:
 
 ```matlab
 projectPaths = setupProject();
 Battery = initBattery();
-```
 
-Check function resolution when troubleshooting:
-
-```matlab
 which initBattery -all
 which batteryECM -all
 ```
 
-## 2. Automated tests
+Confirm the resolved functions point into this Battery_Model tree. The setup deliberately excludes a legacy nested duplicate to avoid path shadowing.
+
+## 2. Automated unit tests
 
 ```matlab
 results = runAllTests();
+disp(table(results));
 ```
 
-The automated suite currently covers selected ECM, SOC and thermal assertions. Passing these tests does not constitute hardware qualification, model validation against measured data, or safety certification.
+The automated suite currently exercises selected ECM, SOC, thermal, 2RC, passive-balancing and regenerative-current assertions. Record the MATLAB release, date, number of tests and passed/failed/incomplete totals. Do not infer test success from the existence of test files.
 
-## 3. Demonstrations
+## 3. Demonstration scripts
 
-Run scripts individually from this directory:
+Run each script individually from this directory:
 
 ```matlab
 run('Tests/testSOC.m')
@@ -41,46 +40,68 @@ run('Tests/testRecommendPack.m')
 run('Tests/testBatteryDesigner.m')
 ```
 
-## 4. New model modules
+Some scripts clear the command window, workspace and figures. Run them separately, not as one combined script.
 
-- `batteryECM`: first-order Thevenin model. Returns an unclipped voltage prediction and a fourth output, `Status`, with over/under-voltage flags.
-- `batteryECM_2RC`: second-order dual-polarization model; requires R2/C2 in the cell parameter structure.
-- `estimateSOC_EKF`: experimental SOC estimator using terminal-voltage feedback.
-- `estimateSOH`: semi-empirical capacity-fade and resistance-growth estimator.
-- `passiveCellBalancing`: switched shunt-resistor balancing prototype.
-- `bmsProtectionLogic`: supervisory state-machine prototype.
-- `thermalManagementController`: illustrative active heating/cooling controller.
-- `driveCycleDynamics`: synthetic road-load/velocity profile generator, not an official WLTP/UDDS data trace.
+## 4. Core workflow examples
 
-## 5. Pack sizing and interpretation
+### Cell and ECM
 
 ```matlab
 Battery = initBattery();
-Pack = createBatteryPack(Battery,13,6);
-Validation = validatePack(Pack);
+SOC = 0.70;
+I = 2.0;       % A, positive means discharge
+dt = 1.0;      % s
+Vrc = 0;
+
+[Vt,Vrc,OCV,Status] = batteryECM(SOC,I,Vrc,dt,Battery);
+disp(Status)
 ```
 
-The estimated pack mass includes cell mass plus configured pack-level BMS, enclosure, busbar and wiring allowances. Those allowances are estimates, not measured masses.
-
-The reported pack volume and Wh/L value use the sum of cell envelopes only. They exclude enclosure, cooling, busbars, spacing and other packaging overhead, so do not compare that value directly with a commercial pack's complete-pack volumetric energy density.
-
-The cost estimate is cell-only. It excludes pack hardware, assembly, testing and logistics.
-
-## 6. Application requirements
-
-Use project-specific requirements rather than universal fixed thresholds:
+### Coulomb-counting SOC
 
 ```matlab
+SOC0 = 0.70;
+SOC1 = coulombCounting(SOC0,2.0,60,Battery.DesignCapacity);
+```
+
+This is current integration only. The OCV table is used in ECM voltage prediction; no rest-based OCV correction or EKF is claimed in the core workflow.
+
+### 2RC model
+
+```matlab
+[Vt,Vrc1,Vrc2,OCV,Status] = batteryECM_2RC( ...
+    0.70,2.0,0,0,1,Battery);
+```
+
+The second polarization branch parameters are preliminary. Calibrate them before treating this model as predictive.
+
+### Pack design
+
+```matlab
+Pack = createBatteryPack(Battery,13,6,false);
+Validation = validatePack(Pack);
+
+% Supply application-specific limits rather than assuming universal limits
 Req.MaxPackVoltage_V = 60;
-Req.MaxPackMass_kg = 5;
+Req.MaxPackMass_kg = 10;
 Req.MaxCellCount = 100;
 Req.MinCapacity_Ah = 20;
-Req.MinDischargeCurrent_A = 25;
 Validation = validatePack(Pack,Req);
 ```
 
-The numbers above are examples only. Supply values from the actual system requirements.
+The example limits are illustrative only and are not safety recommendations.
 
-## 7. Limitations
+## 5. Known issues / caution
 
-The EKF and SOH model require parameter identification and validation against independent data. The drive-cycle generator is illustrative. The balancing, protection and thermal-management algorithms are educational prototypes, not certified safety functions. No ISO 26262 compliance is claimed. The pack design search is heuristic. No editable integrated Simulink `.slx` model is included in this source tree.
+- `initCell.m` under the cell-library Scripts folder is a legacy script and refers to a `Battery.NominalCapacity` field that is not defined by the current initializer. Prefer `initBattery()` and the canonical pack functions.
+- The older reference-pack scripts contain provisional ECM values that disagree with `initBattery.m`. Do not use them as the active parameter source.
+- `BatteryDesigner` currently has a schema mismatch between the commercial recommendation table and fields expected by its formatted report. Do not rely on this end-to-end pathway until corrected and tested.
+- Commercial database score normalization can divide by zero or propagate invalid values for some datasets.
+- Low-level utility functions are not yet uniformly validated for malformed/non-finite inputs.
+- The thermal model is single-node and its Euler update needs timestep-convergence checks.
+- Pack mass includes estimates, cell-only volume and cell-only cost have limited scope.
+- No production protection, safety qualification, ISO 26262 compliance or hardware validation is provided.
+
+## 6. Reporting test results
+
+Use the actual MATLAB test-run output. Report the MATLAB version, operating system, test date, number of tests, pass/fail/incomplete counts and any test diagnostics. Do not put an unexecuted or hypothetical result in the project report.
