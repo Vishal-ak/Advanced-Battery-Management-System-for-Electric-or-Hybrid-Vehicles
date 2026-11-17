@@ -115,7 +115,7 @@ Pack.MinCellTemperature = Battery.MinCellTemperature;
 Pack.MinChargeTemperature = Battery.MinChargeTemperature;
 Pack.MaxChargeTemperature = Battery.MaxChargeTemperature;
 Pack.LowTempChargeTemperatureThreshold = Battery.LowTempChargeTemperatureThreshold;
-Pack.LowTempChargeCurrent = Battery.LowTempChargeCurrent;
+Pack.LowTempChargeCurrent = Battery.LowTempChargeCurrent*Np; % A at pack level
 
 if verbose
     fprintf('\n=== BATTERY PACK CREATED ===\n');
