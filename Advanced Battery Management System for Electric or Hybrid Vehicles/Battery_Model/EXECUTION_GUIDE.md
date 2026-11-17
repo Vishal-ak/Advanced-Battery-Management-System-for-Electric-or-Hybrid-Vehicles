@@ -36,11 +36,11 @@ app = BMSDashboard();
 Dashboard controls:
 - Series-cell count (N_s) and parallel-string count (N_p).
 - Initial SOC and initial cell temperature.
-- Current profile: synthetic drive cycle, constant discharge, step discharge or pulse discharge.
+- Current profile: synthetic drive cycle, constant discharge, constant charge, step discharge or pulse discharge.
 - Ambient temperature, time step and simulation duration.
 - Run simulation and export the output time series as CSV.
 
-The dashboard shows applied pack/cell current, pack terminal voltage, Coulomb-counting SOC and single-cell lumped temperature. It also reports peak temperature, voltage-limit flags and charge/discharge current inhibition/derating.
+The dashboard shows applied pack/cell current, pack terminal voltage, Coulomb-counting SOC and single-cell lumped temperature. It also reports peak temperature, voltage-limit flags, charge/discharge current inhibition, low-temperature derating and SOC-boundary current limiting.
 
 Retrieve the last completed run from the returned app struct:
 
@@ -95,7 +95,7 @@ R = simulateBatteryPack(Battery,Pack,0.80,25,25,1,300, ...
     "Synthetic drive cycle");
 ```
 
-The drive-cycle function provides a synthetic pack-current shape. The service scales charge/discharge current commands to configured limits, converts pack current to per-cell current by dividing by Np, applies the 0.25C cell charge limit below 10 °C, and inhibits current outside configured operating limits. This is a model-side educational constraint, not a certified protection strategy.
+The drive-cycle function provides a synthetic pack-current shape. The service scales charge/discharge current commands to configured limits, converts pack current to per-cell current by dividing by Np, applies the 0.25C cell charge limit below 10 °C, inhibits current outside configured temperature limits, and limits each integration step so SOC does not cross the configured minimum/maximum operating window. This is a model-side educational constraint, not a certified protection strategy.
 
 ## 5. Demonstration scripts
 
