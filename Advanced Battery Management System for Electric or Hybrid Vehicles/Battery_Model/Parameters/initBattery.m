@@ -13,7 +13,7 @@ Battery.dataFolder = fullfile(projectRoot,'Cell_Library', ...
 %% Cell identity
 Battery.CellModel = "Panasonic NCR18650B";
 Battery.Manufacturer = "Panasonic";
-Battery.Chemistry = "Lithium-Ion (NCA)";
+Battery.Chemistry = "Lithium-Ion (cathode chemistry not specified in referenced datasheet)";
 Battery.CellType = "18650 Cylindrical";
 
 %% Electrical parameters (project model configuration)
@@ -27,8 +27,8 @@ Battery.DesignCapacity = Battery.TypicalCapacity;
 % Retain the legacy resistance field for compatibility, but distinguish it
 % explicitly from the ohmic resistance currently used by the ECM.
 Battery.InternalResistance = 0.050;  % Ohm; legacy/general model field
-Battery.R0 = 0.045;                  % Ohm; ECM ohmic resistance
-Battery.StandardChargeCurrent = 1.65; % A; project assumption
+Battery.R0 = 0.045; % Ohm; preliminary ECM parameter, requires cell characterization                  % Ohm; ECM ohmic resistance
+Battery.StandardChargeCurrent = 1.625; % A; manufacturer standard charge current; project assumption
 Battery.MaxDischargeCurrent = 5.0;    % A; project assumption
 Battery.CapacityCoulomb = Battery.DesignCapacity*3600;
 
@@ -50,10 +50,10 @@ Battery.ThermalResistance = 5;          % K/W
 Battery.InitialTemperature = 25;        % degC
 
 %% ECM parameters
-Battery.R1 = 0.012;   % Ohm; preliminary polarization parameter
-Battery.C1 = 2400;    % F; preliminary polarization parameter
-Battery.R2 = 0.015;   % Ohm; preliminary 2RC parameter
-Battery.C2 = 8000;    % F; preliminary 2RC parameter
+Battery.R1 = 0.012; % Ohm; preliminary ECM parameter   % Ohm; preliminary polarization parameter
+Battery.C1 = 2400; % F; preliminary ECM parameter    % F; preliminary polarization parameter
+Battery.R2 = 0.015; % Ohm; preliminary 2RC parameter   % Ohm; preliminary 2RC parameter
+Battery.C2 = 8000; % F; preliminary 2RC parameter    % F; preliminary 2RC parameter
 
 %% SOC/SOH initial conditions and configured limits
 Battery.InitialSOC = 1.0;
