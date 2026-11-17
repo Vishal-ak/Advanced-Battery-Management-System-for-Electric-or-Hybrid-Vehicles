@@ -9,6 +9,7 @@ requiredFolders = {
     'Cell_Model/Thermal'
     'Parameters'
     'SOC'
+    'Simulation'
     'Simulation/CurrentProfile'
     'Pack_Database'
     };
