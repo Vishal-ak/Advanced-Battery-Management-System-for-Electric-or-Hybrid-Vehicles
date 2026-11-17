@@ -25,9 +25,9 @@ This register distinguishes source implementation, automated software testing, e
 | Custom/commercial BatteryDesigner report | Integration corrected on branch | Table-to-struct conversion added; end-to-end execution against workbook pending |
 | Passive balancing | Implemented | Idealized shunt logic; no resistor thermal or hardware validation |
 | Regenerative-braking current estimate | Implemented | Project SOC heuristic, voltage-headroom limit and datasheet temperature/low-temp current constraints; not electrochemical charge acceptance |
-| Pack-scaled simulation service | Added | Converts pack current to per-cell current and applies model operating limits; needs MATLAB run |
+| Pack-scaled simulation service | Added | Converts pack current to per-cell current; applies temperature/low-temp charge limits and per-step SOC boundaries; needs MATLAB run |
 | Dynamic ECM demonstration | Corrected | 13S6P profile maps pack current to cell current; saved legacy plot files have not yet been regenerated |
-| Interactive MATLAB dashboard | Added as `BMSDashboard.m` | UI code exists; no MATLAB UI execution/interaction test yet |
+| Interactive MATLAB dashboard | Added as `BMSDashboard.m` | Includes constant-charge case and SOC-limit metrics/CSV; no MATLAB UI execution/interaction test yet |
 | Dashboard CSV export | Added | Needs MATLAB runtime verification |
 | Integrated Simulink model | Not present | No tracked `.slx` model |
 | Safety-qualified BMS | Not established | No safety case, hazard analysis or certification evidence |
@@ -101,7 +101,7 @@ Automated unit-test files are present under `Tests/Automated_Test_File/`. The co
 - Thermal heat generation and temperature response.
 - Reference-cell and 13S6P pack arithmetic.
 - Heuristic 48 V / 20 Ah pack sizing.
-- Pack current/per-cell current conversion.
+- Pack current/per-cell current conversion.\n- Lower and upper SOC operating-window current limiting.
 - Low-temperature 0.25C charging and charge inhibition.
 - Database capacity/weight/dimension parsing.
 - Regenerative current voltage-headroom, SOC and temperature limits.
