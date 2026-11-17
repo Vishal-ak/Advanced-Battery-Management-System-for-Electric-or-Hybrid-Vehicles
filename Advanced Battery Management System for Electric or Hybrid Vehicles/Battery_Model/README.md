@@ -16,31 +16,36 @@ A successful call to `runAllTests` means the automated test assertions passed in
 
 ## Implemented modules
 
-- **Cell parameters/data:** Panasonic NCR18650B reference parameter initialization and OCV–SOC table loading.
-- **Electrical cell model:** First-order Thevenin ECM (1RC), with an optional second-order (2RC) implementation.
-- **SOC:** Coulomb counting. The OCV–SOC lookup supports the ECM open-circuit-voltage calculation; it is not by itself an online SOC correction observer.
-- **Thermal:** Lumped single-node temperature update and ohmic heat generation.
-- **Pack:** Series/parallel pack creation, arithmetic utilities, heuristic sizing, validation and pack-database comparison.
-- **Balancing:** Simplified idealized passive shunt logic.
-- **Regeneration:** Simplified regenerative charge-current estimate with current limits.
-- **Simulation:** Constant, step, pulse and synthetic drive-cycle current inputs.
+- **Cell data:** Panasonic NCR18650B reference parameter initialization and OCV–SOC table loading.
+- **Electrical cell model:** first-order Thevenin ECM (1RC) and optional second-order ECM (2RC).
+- **SOC:** Coulomb counting. OCV lookup supplies the ECM open-circuit voltage; it does not itself implement rested-voltage SOC correction.
+- **Thermal:** lumped single-node temperature update and ohmic heat generation.
+- **Pack:** series/parallel pack creation, arithmetic utilities, heuristic sizing, validation and pack-database comparison.
+- **Balancing:** simplified idealized passive shunt logic.
+- **Regeneration:** simplified regenerative charge-current estimate with configured current and charge-temperature limits.
+- **Simulation:** constant, step, pulse and synthetic drive-cycle current inputs.
 - **Tests:** MATLAB demonstration scripts and automated unit tests.
 
-## Not included as verified core features
+## Reference-cell ratings and example pack
 
-No verified EKF SOC estimator, SOH/aging estimator, fault-diagnosis system, validated supervisory protection state machine, active thermal controller, or tracked integrated Simulink model is established by the current core source inventory. Do not list these as implemented until the source, execution instructions and tests exist.
+The included Panasonic NCR18650B reference datasheet specifies 3.6 V nominal voltage, 3.35 Ah typical capacity, 3.25 Ah minimum capacity, a 4.2 V charging voltage, a 2.5 V discharge cutoff and 1.625 A standard charge current. The active initializer uses these nominal/capacity/charge values.
 
-## Important modelling boundaries
+An ideal 13S6P configuration calculates to 46.8 V nominal, 54.6 V maximum, 32.5 V cutoff, 20.1 Ah and 940.68 Wh nominal energy. Its calculated standard charge-current level is 9.75 A for six parallel cells with ideal current sharing.
 
-- ECM parameters are fixed project inputs until identified against traceable test data.
+The 5 A cell discharge current in the initializer is a conservative project model limit, not a quoted maximum rating from the referenced datasheet. ECM R0/R1/C1/R2/C2, thermal parameters and cell-resistance values remain modelling parameters requiring characterization.
+
+## Engineering limitations
+
+- Verify the exact reference-cell datasheet revision and tube/bare-cell dimensional basis.
+- The cathode chemistry is not asserted where the referenced datasheet does not specify it.
+- The OCV table provenance, temperature, rest period and SOC calibration need traceable documentation.
 - The 2RC branch values are preliminary.
-- The OCV table's provenance, test temperature, rest period and SOC reference method need to be recorded.
-- The thermal model is a single-node approximation. Heat generation currently uses `I^2 R0`; reversible heat and distributed gradients are not included.
-- Pack sizing is a bounded heuristic, not a global optimum.
-- Mass includes configured pack-level hardware allowances; these are estimates.
-- Volumetric density uses cell-envelope volume only, not total assembled pack volume.
-- Estimated cost is cell-only and excludes pack hardware and assembly.
-- Passive balancing and regenerative braking are educational prototypes, not production control algorithms.
-- No ISO 26262 compliance or safety certification is claimed.
+- The thermal model is single-node and heat generation currently uses (I^2R_0).
+- Pack sizing is a bounded heuristic, not a global optimizer.
+- Pack mass includes configurable pack-level hardware estimates; volume is cell-envelope-only; estimated cost is cell-only.
+- Passive balancing and regenerative-braking algorithms are educational prototypes, not production safety functions.
+- Charge-current derating uses simplified SOC and temperature factors; it is not a validated electrochemical charge-acceptance model.
+- No ISO 26262 compliance or functional-safety certification is claimed.
+- Run MATLAB tests locally before relying on a result. Repository updates do not imply runtime test success.
 
-See [EXECUTION_GUIDE.md](EXECUTION_GUIDE.md), [Documentation/MODEL_REFERENCE.md](Documentation/MODEL_REFERENCE.md), and [Documentation/VALIDATION_STATUS.md](Documentation/VALIDATION_STATUS.md).
+See [EXECUTION_GUIDE.md](EXECUTION_GUIDE.md), [Documentation/MODEL_REFERENCE.md](Documentation/MODEL_REFERENCE.md), [Documentation/VALIDATION_STATUS.md](Documentation/VALIDATION_STATUS.md) and [Documentation/PROJECT_REPORT.md](Documentation/PROJECT_REPORT.md).
