@@ -20,7 +20,8 @@ required = {'NominalVoltage','MaximumVoltage','CutoffVoltage','DesignCapacity', 
     'ThermalResistance','InitialTemperature','R0','R1','C1','CellEnergy_Wh', ...
     'Volume_L','Diameter','Height','MinimumSOC','MaximumSOC','InitialSOC', ...
     'InitialSOH','MaxCellTemperature','MinCellTemperature', ...
-    'MinChargeTemperature','MaxChargeTemperature'};
+    'MinChargeTemperature','MaxChargeTemperature','LowTempChargeTemperatureThreshold', ...
+    'LowTempChargeCurrent'};
 for k = 1:numel(required)
     f = required{k};
     if ~isfield(Battery,f) || ~isnumeric(Battery.(f)) || ...
@@ -113,6 +114,8 @@ Pack.MaxCellTemperature = Battery.MaxCellTemperature;
 Pack.MinCellTemperature = Battery.MinCellTemperature;
 Pack.MinChargeTemperature = Battery.MinChargeTemperature;
 Pack.MaxChargeTemperature = Battery.MaxChargeTemperature;
+Pack.LowTempChargeTemperatureThreshold = Battery.LowTempChargeTemperatureThreshold;
+Pack.LowTempChargeCurrent = Battery.LowTempChargeCurrent;
 
 if verbose
     fprintf('\n=== BATTERY PACK CREATED ===\n');
