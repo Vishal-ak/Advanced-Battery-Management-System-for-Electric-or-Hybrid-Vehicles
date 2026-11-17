@@ -203,7 +203,8 @@ The audit branch introduces `simulateBatteryPack.m`. It:
 - Applies the separate low-temperature 0.25C charge limit below 10 °C.
 - Inhibits charging outside the configured charge-temperature range and inhibits discharge outside the configured discharge-temperature range.
 - Integrates cell SOC and lumped temperature and calculates pack voltage from series cell voltage.
-- Limits charge/discharge current each step to prevent SOC crossing the configured operating window.\n- Returns current, voltage, SOC, temperature and limit-status histories, including SOC-boundary current limiting.
+- Limits charge/discharge current each step to prevent SOC crossing the configured operating window.
+- Returns current, voltage, SOC, temperature and limit-status histories, including SOC-boundary current limiting.
 
 These behaviours are simulation-side constraints for demonstration and testing. They are not a certified BMS protection algorithm.
 
