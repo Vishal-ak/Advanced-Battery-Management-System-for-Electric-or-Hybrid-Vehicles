@@ -30,7 +30,8 @@ for k = 1:numel(required)
             'Battery.%s must be a finite numeric scalar.',f);
     end
 end
-positive = {'NominalVoltage','DesignCapacity','Mass','Volume_L','R0','R1','C1'};
+positive = {'NominalVoltage','DesignCapacity','Mass','Volume_L','R0','R1','C1', ...
+    'StandardChargeCurrent','MaxDischargeCurrent','LowTempChargeCurrent'};
 for k = 1:numel(positive)
     f = positive{k};
     if Battery.(f) <= 0
@@ -47,7 +48,10 @@ if Battery.StandardChargeCurrent <= 0 || Battery.MaxDischargeCurrent <= 0
     error('BMS:InvalidCurrentLimit','Charge/discharge current limits must be positive.');
 end
 if Battery.MinChargeTemperature >= Battery.MaxChargeTemperature || ...
-        Battery.MinCellTemperature >= Battery.MaxCellTemperature
+        Battery.MinCellTemperature >= Battery.MaxCellTemperature || ...
+        Battery.LowTempChargeTemperatureThreshold <= Battery.MinChargeTemperature || ...
+        Battery.LowTempChargeTemperatureThreshold >= Battery.MaxChargeTemperature || ...
+        Battery.LowTempChargeCurrent >= Battery.StandardChargeCurrent
     error('BMS:InvalidTemperatureLimits','Temperature bounds must be ordered.');
 end
 
