@@ -1,8 +1,10 @@
 # Battery Model — MATLAB Project
 
-This is the canonical MATLAB source tree for the EV/HEV battery modelling project.
+This folder is the canonical MATLAB source tree for the EV/HEV battery modelling project.
 
 ## Quick start
+
+Set MATLAB Current Folder to this directory:
 
 ```matlab
 projectPaths = setupProject();
@@ -10,28 +12,35 @@ Battery = initBattery();
 results = runAllTests();
 ```
 
-See [EXECUTION_GUIDE.md](EXECUTION_GUIDE.md) for demonstrations and detailed execution order.
+A successful call to `runAllTests` means the automated test assertions passed in that MATLAB run. It does not establish experimental model validity or safety qualification.
 
-## Modules
+## Implemented modules
 
-- **Cell model:** first-order Thevenin ECM; optional second-order (2RC) model.
-- **SOC:** Coulomb counting and an experimental EKF estimator.
-- **Thermal:** lumped thermal model, heat-generation extensions and a supervisory thermal controller.
-- **Aging:** semi-empirical SOH estimator (requires calibration before predictive use).
-- **Pack:** series/parallel sizing, pack calculations, passive balancing and supervisory protection logic.
-- **Simulation:** current profiles, regenerative-braking calculations and illustrative road-load drive-cycle simulation.
-- **Tests:** demonstration scripts and automated unit tests.
+- **Cell parameters/data:** Panasonic NCR18650B reference parameter initialization and OCV–SOC table loading.
+- **Electrical cell model:** First-order Thevenin ECM (1RC), with an optional second-order (2RC) implementation.
+- **SOC:** Coulomb counting. The OCV–SOC lookup supports the ECM open-circuit-voltage calculation; it is not by itself an online SOC correction observer.
+- **Thermal:** Lumped single-node temperature update and ohmic heat generation.
+- **Pack:** Series/parallel pack creation, arithmetic utilities, heuristic sizing, validation and pack-database comparison.
+- **Balancing:** Simplified idealized passive shunt logic.
+- **Regeneration:** Simplified regenerative charge-current estimate with current limits.
+- **Simulation:** Constant, step, pulse and synthetic drive-cycle current inputs.
+- **Tests:** MATLAB demonstration scripts and automated unit tests.
 
-## Engineering limitations
+## Not included as verified core features
 
-- The EKF process/measurement noise and the SOH degradation coefficients are illustrative until identified against independent experimental data.
-- The drive-cycle generator is synthetic/illustrative; it must not be described as an official WLTP or UDDS trace.
-- Pack mass includes configured pack-level hardware mass estimates. Replace them with sourced/measured component values.
-- Pack volume is the sum of cell envelopes only. It excludes enclosure, cooling, busbars and clearances; therefore the associated Wh/L figure is not complete-pack energy density.
-- Estimated pack cost is currently cell-only and excludes BMS, enclosure, interconnects, assembly and validation.
-- ECM voltage output is not clipped. Voltage violations are reported for supervisory protection logic to handle.
-- The protection and balancing algorithms are educational prototypes, not safety-certified implementations. No ISO 26262 compliance or functional-safety certification is claimed.
-- The pack designer uses a bounded heuristic search, not a global optimizer.
-- Run MATLAB tests locally before relying on a result. Repository updates do not imply runtime test success.
+No verified EKF SOC estimator, SOH/aging estimator, fault-diagnosis system, validated supervisory protection state machine, active thermal controller, or tracked integrated Simulink model is established by the current core source inventory. Do not list these as implemented until the source, execution instructions and tests exist.
 
-Advanced estimation, aging, balancing, fault handling and thermal management require experimental calibration and independent validation before deployment.
+## Important modelling boundaries
+
+- ECM parameters are fixed project inputs until identified against traceable test data.
+- The 2RC branch values are preliminary.
+- The OCV table's provenance, test temperature, rest period and SOC reference method need to be recorded.
+- The thermal model is a single-node approximation. Heat generation currently uses `I^2 R0`; reversible heat and distributed gradients are not included.
+- Pack sizing is a bounded heuristic, not a global optimum.
+- Mass includes configured pack-level hardware allowances; these are estimates.
+- Volumetric density uses cell-envelope volume only, not total assembled pack volume.
+- Estimated cost is cell-only and excludes pack hardware and assembly.
+- Passive balancing and regenerative braking are educational prototypes, not production control algorithms.
+- No ISO 26262 compliance or safety certification is claimed.
+
+See [EXECUTION_GUIDE.md](EXECUTION_GUIDE.md), [Documentation/MODEL_REFERENCE.md](Documentation/MODEL_REFERENCE.md), and [Documentation/VALIDATION_STATUS.md](Documentation/VALIDATION_STATUS.md).
