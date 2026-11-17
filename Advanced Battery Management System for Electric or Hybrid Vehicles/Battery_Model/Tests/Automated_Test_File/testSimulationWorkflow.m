@@ -50,3 +50,21 @@ R = simulateBatteryPack(Battery,Pack,0.80,25,25,1,60, ...
     "Constant discharge");
 verifyLessThan(testCase,R.SOC(end),R.SOC(1));
 end
+
+function testSOCLowerBoundaryIsEnforced(testCase)
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+R = simulateBatteryPack(Battery,Pack,0.10001,25,25,1,60, ...
+    "Constant discharge");
+verifyGreaterThanOrEqual(testCase,min(R.SOC),Battery.MinimumSOC-1e-12);
+verifyTrue(testCase,any(R.SOCBoundaryLimited));
+end
+
+function testSOCUpperBoundaryIsEnforced(testCase)
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+R = simulateBatteryPack(Battery,Pack,0.99999,25,25,1,130, ...
+    "Synthetic drive cycle");
+verifyLessThanOrEqual(testCase,max(R.SOC),Battery.MaximumSOC+1e-12);
+verifyTrue(testCase,any(R.SOCBoundaryLimited));
+end
