@@ -97,6 +97,7 @@ underVoltage = false(1,n);
 chargeInhibited = false(1,n);
 chargeDerated = false(1,n);
 dischargeInhibited = false(1,n);
+socBoundaryLimited = false(1,n);
 Vrc = 0;
 soc(1) = InitialSOC;
 temperature(1) = InitialCellTemperature;
@@ -126,6 +127,23 @@ for k = 1:n
              soc(k) <= Battery.MinimumSOC)
         appliedCellCurrent = 0;
         dischargeInhibited(k) = true;
+    end
+
+    % Limit the next integration step at the configured SOC operating window.
+    if k < n && appliedCellCurrent > 0
+        availableDischargeA = max(0,(soc(k)-Battery.MinimumSOC)* ...
+            Battery.DesignCapacity*3600/dt);
+        if appliedCellCurrent > availableDischargeA
+            appliedCellCurrent = availableDischargeA;
+            socBoundaryLimited(k) = true;
+        end
+    elseif k < n && appliedCellCurrent < 0
+        availableChargeA = max(0,(Battery.MaximumSOC-soc(k))* ...
+            Battery.DesignCapacity*3600/dt);
+        if abs(appliedCellCurrent) > availableChargeA
+            appliedCellCurrent = -availableChargeA;
+            socBoundaryLimited(k) = true;
+        end
     end
 
     cellCurrent(k) = appliedCellCurrent;
@@ -164,12 +182,14 @@ Results.UnderVoltage = underVoltage(:);
 Results.ChargeInhibited = chargeInhibited(:);
 Results.ChargeCurrentDerated = chargeDerated(:);
 Results.DischargeInhibited = dischargeInhibited(:);
+Results.SOCBoundaryLimited = socBoundaryLimited(:);
 Results.DischargeCurrentScale = dischargeScale;
 Results.ChargeCurrentScale = chargeScale;
 Results.VoltageLimitViolationCount = sum(overVoltage | underVoltage);
 Results.ChargeInhibitionCount = sum(chargeInhibited);
 Results.ChargeDeratingCount = sum(chargeDerated);
 Results.DischargeInhibitionCount = sum(dischargeInhibited);
+Results.SOCBoundaryLimitCount = sum(socBoundaryLimited);
 Results.MaxCellDischargeCurrent_A = Battery.MaxDischargeCurrent;
 Results.MaxCellStandardChargeCurrent_A = Battery.StandardChargeCurrent;
 Results.LowTemperatureChargeCurrent_A = Battery.LowTempChargeCurrent;
