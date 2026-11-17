@@ -78,9 +78,9 @@ The original `main` tree had no dashboard application file. The correction branc
 
 Dashboard features in source:
 - Editable Ns/Np, initial SOC, cell/ambient temperature, time step and duration.
-- Four profile selections.
+- Five profile selections: synthetic drive cycle, constant discharge, constant charge, step discharge and pulse discharge.
 - Current, pack voltage, SOC and cell-temperature plots.
-- SOC, voltage, temperature, current, inhibition/derating and voltage-flag summaries.
+- SOC, voltage, temperature, current, temperature-based inhibition/derating, SOC-boundary limiting and voltage-flag summaries.
 - CSV time-series export.
 - Last completed run retrievable from `app.GetResults()`.
 
