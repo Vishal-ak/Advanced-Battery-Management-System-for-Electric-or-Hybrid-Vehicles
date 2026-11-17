@@ -10,9 +10,11 @@ Battery = initBattery();
 
 which initBattery -all
 which batteryECM -all
+which simulateBatteryPack -all
+which BMSDashboard -all
 ```
 
-Confirm the resolved functions point into this Battery_Model tree.
+Confirm that the resolved functions point into this Battery_Model tree. `setupProject` adds both `Simulation` and `Simulation/CurrentProfile` to the MATLAB path.
 
 ## 2. Automated unit tests
 
@@ -21,26 +23,32 @@ results = runAllTests();
 disp(results);
 ```
 
-The automated suite exercises selected ECM, SOC, thermal, 2RC, passive-balancing, regenerative-current and invalid-input assertions. Record MATLAB release, date, test count and passed/failed/incomplete totals. Test files being present is not proof they have been executed.
+The automated suite covers selected ECM, SOC, thermal, 2RC, pack scaling, database parsing, passive-balancing, regenerative-current, simulation and invalid-input assertions. Record MATLAB release, date, test count and passed/failed/incomplete totals. Test files being present is not proof they have been executed.
 
-## 3. Demonstration scripts
+## 3. Interactive simulation dashboard
 
-Run each script individually from this directory:
+Launch the programmatic MATLAB UI:
 
 ```matlab
-run('Tests/testSOC.m')
-run('Tests/testECM.m')
-run('Tests/testDynamicECM.m')
-run('Tests/testTemperature.m')
-run('Tests/testBatteryPack.m')
-run('Tests/testPackAPI.m')
-run('Tests/testDesignPack.m')
-run('Tests/testPackDatabase.m')
-run('Tests/testRecommendPack.m')
-run('Tests/testBatteryDesigner.m')
+app = BMSDashboard();
 ```
 
-Some scripts clear the workspace and figures. Run them separately.
+Dashboard controls:
+- Series-cell count (N_s) and parallel-string count (N_p).
+- Initial SOC and initial cell temperature.
+- Current profile: synthetic drive cycle, constant discharge, step discharge or pulse discharge.
+- Ambient temperature, time step and simulation duration.
+- Run simulation and export the output time series as CSV.
+
+The dashboard shows applied pack/cell current, pack terminal voltage, Coulomb-counting SOC and single-cell lumped temperature. It also reports peak temperature, voltage-limit flags and charge/discharge current inhibition/derating.
+
+Retrieve the last completed run from the returned app struct:
+
+```matlab
+R = app.GetResults();
+```
+
+The dashboard is offline and model-based. It does not connect to hardware, sensors, CAN, a charger or a vehicle. It is not a safety controller.
 
 ## 4. Core model examples
 
@@ -78,21 +86,35 @@ Validation = validatePack(Pack);
 
 The application-specific limits passed to `validatePack` must come from the real system requirements. Example thresholds are not safety recommendations.
 
-## 5. Dynamic simulation: pack current versus cell current
+### Pack-scaled simulation outside the UI
 
-`driveCycleCurrent(t)` returns the synthetic **pack current** profile. The cell ECM is a single-cell model. For an ideal (N_p)-parallel pack:
+```matlab
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+R = simulateBatteryPack(Battery,Pack,0.80,25,25,1,300, ...
+    "Synthetic drive cycle");
+```
 
-[
-I_{cell}=\frac{I_{pack}}{N_p}
-]
+The drive-cycle function provides a synthetic pack-current shape. The service scales charge/discharge current commands to configured limits, converts pack current to per-cell current by dividing by Np, applies the 0.25C cell charge limit below 10 °C, and inhibits current outside configured operating limits. This is a model-side educational constraint, not a certified protection strategy.
 
-The corrected `Tests/testDynamicECM.m` uses a 13S6P reference pack and divides the 8–30 A pack profile by six before applying it to the cell model. The resulting maximum discharge current is 5 A per cell, matching the configured model limit. The script starts at 80% SOC to leave headroom for its regenerative segment.
+## 5. Demonstration scripts
 
-On execution, the script saves updated figures and a text summary in the `Results/` folder:
-- Pack current and per-cell current.
-- Cell terminal voltage and 13S6P pack terminal voltage.
-- Pack OCV and SOC.
-- Run summary with current/voltage ranges and voltage-limit flag counts.
+Run each script individually from this directory:
+
+```matlab
+run('Tests/testSOC.m')
+run('Tests/testECM.m')
+run('Tests/testDynamicECM.m')
+run('Tests/testTemperature.m')
+run('Tests/testBatteryPack.m')
+run('Tests/testPackAPI.m')
+run('Tests/testDesignPack.m')
+run('Tests/testPackDatabase.m')
+run('Tests/testRecommendPack.m')
+run('Tests/testBatteryDesigner.m')
+```
+
+Some scripts clear the workspace and figures. Run them separately.
 
 ## 6. Known limitations
 
