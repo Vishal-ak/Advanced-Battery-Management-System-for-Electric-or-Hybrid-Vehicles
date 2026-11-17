@@ -1,6 +1,6 @@
 # Panasonic NCR18650B — Reference-Cell Specification
 
-This file summarizes the cell assumptions used by this project. It is not a substitute for the manufacturer datasheet. Consult the PDF documents in the adjacent `Datasheet` directory for manufacturer specifications and test conditions.
+This file summarizes the values currently configured by the project. It is not a substitute for the manufacturer datasheet. Consult the adjacent `Datasheet` folder and record the exact document revision and test conditions before asserting a value is manufacturer-guaranteed.
 
 ## Reference identity
 
@@ -9,46 +9,50 @@ This file summarizes the cell assumptions used by this project. It is not a subs
 | Manufacturer | Panasonic |
 | Model | NCR18650B |
 | Format | Cylindrical 18650 |
-| Chemistry | NCA lithium-ion (project designation) |
+| Chemistry | NCA lithium-ion (project designation; verify variant documentation) |
 
-## Model parameters
+## Current model initialization
 
-The following values are configured in `Parameters/initBattery.m`. They are software model inputs and must not be represented as a complete transcription of the manufacturer's datasheet.
+The following values are set in `Parameters/initBattery.m`. They are **runtime model inputs**, not a guarantee that each value is a manufacturer specification.
 
-| Parameter | Current model value | Unit | Notes |
+| Parameter | Runtime value | Unit | Comment |
 |---|---:|---|---|
-| Nominal voltage | 3.70 | V | Project model assumption; confirm against exact cell datasheet revision |
+| Nominal voltage | 3.70 | V | Project configuration; reconcile with selected datasheet |
 | Maximum voltage | 4.20 | V | Configured upper voltage limit |
 | Cutoff voltage | 2.50 | V | Configured lower voltage limit |
+| Minimum capacity | 3.25 | Ah | Project parameter |
 | Typical/design capacity | 3.35 | Ah | Used for pack calculations |
-| Minimum capacity | 3.25 | Ah | Conservative project parameter |
-| Standard charge current | 1.65 | A | Project model assumption |
-| Maximum discharge current | 5.00 | A | Project model assumption; verify continuous rating and test conditions |
-| Internal resistance | 0.050 | Ω | General parameter; ECM uses separate (R_0=0.045,Omega) |
-| Cell mass | 48.5 | g | Used in mass estimate |
+| Internal resistance field | 0.050 | Ω | Separate field; not the ECM R0 |
+| ECM R0 | 0.045 | Ω | Used by 1RC and thermal heat-generation functions |
+| ECM R1 | 0.012 | Ω | First polarization branch |
+| ECM C1 | 2400 | F | First polarization branch |
+| Optional ECM R2 | 0.015 | Ω | Preliminary second branch |
+| Optional ECM C2 | 8000 | F | Preliminary second branch |
+| Standard charge current | 1.65 | A | Project parameter; verify against datasheet |
+| Maximum discharge current | 5.00 | A | Project parameter; verify rating and test conditions |
+| Cell mass | 48.5 | g | Used in mass estimation |
 | Diameter | 18.25 | mm | Geometric parameter |
 | Height | 65.10 | mm | Geometric parameter |
-| Specific heat | 900 | J/(kg·K) | Simplified thermal-model parameter |
-| Thermal resistance | 5 | K/W | Simplified thermal-model parameter |
+| Specific heat | 900 | J/(kg·K) | Simplified thermal parameter |
+| Thermal resistance | 5 | K/W | Simplified thermal parameter |
 | Initial temperature | 25 | °C | Simulation initial condition |
-| ECM (R_0) | 0.045 | Ω | Ohmic resistance |
-| ECM (R_1) | 0.012 | Ω | First polarization resistance |
-| ECM (C_1) | 2400 | F | First polarization capacitance |
-| Optional ECM (R_2) | 0.015 | Ω | Preliminary second branch; requires identification |
-| Optional ECM (C_2) | 8000 | F | Preliminary second branch; requires identification |
-| Operating temperature range | −20 to 60 | °C | Configured model limits; verify for use case |
+| Configured operating temperature | −20 to 60 | °C | Model limits; verify applicability |
 
-## Data and provenance
+## OCV data
 
-The OCV–SOC table is loaded from:
+The runtime initializer reads:
 
 `Data/OCV_SOC.csv`
 
-Before using it for quantitative model validation, record its source, measurement temperature, rest duration, charge/discharge direction, SOC reference method and any preprocessing steps. The existence of a CSV file alone does not establish that the data is manufacturer-published or experimentally characterized by this project.
+The repository also contains charge/discharge-related OCV files and a processing script. Before using the table as reference or validation data, document its source, measurement temperature, rest duration, direction, SOC reference method, preprocessing and any permission/license conditions. The CSV's existence does not establish provenance or that it was measured by this project.
 
-## Parameter consistency warning
+## Known inconsistencies requiring resolution
 
-Other project data files may contain different nominal voltage, resistance and current values. In particular, `Data/parameter.txt` is a separate reference-data file and is not automatically synchronized with `initBattery.m`. Treat `initBattery.m` as the current MATLAB runtime configuration; reconcile discrepancies against the official datasheet before making a final engineering parameter set.
+- `InternalResistance` is 0.050 Ω, while ECM `R0` is 0.045 Ω.
+- Legacy scripts use a temporary (R_1=0.0015\,\Omega), (C_1=35000\,F) instead of the current runtime initializer's (R_1=0.012\,\Omega), (C_1=2400\,F).
+- Legacy `initCell.m` expects `Battery.NominalCapacity`, which does not exist in the current `initBattery.m` initializer.
+
+Do not silently reconcile these by choosing a value without a traceable parameter source. Select one parameter set after reviewing the correct datasheet and cell test data, then update all legacy scripts and documentation from that source.
 
 ## Usage
 
