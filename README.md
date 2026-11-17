@@ -13,13 +13,14 @@ The tracked implementation is organized around the **Panasonic NCR18650B** refer
 - Optional second-order Thevenin equivalent-circuit model (2RC).
 - Coulomb-counting SOC update.
 - Lumped single-node thermal model and ohmic heat-generation calculation.
-- Constant, step, pulse and synthetic drive-cycle current profiles.
+- Synthetic drive-cycle, constant-discharge, constant-charge, step and pulse current profiles with pack-to-cell current scaling.
 - Series-parallel pack construction and bounded heuristic pack sizing.
-- Pack voltage, current, power and nominal-energy utilities.
+- Pack voltage, current, power and nominal-energy utilities with validated scalar inputs.
 - Commercial pack database loading, cleaning and recommendation.
 - Simplified passive cell-balancing logic.
 - Simplified regenerative-braking charge-current limit.
-- Pack consistency checks and MATLAB automated tests.
+- Pack consistency checks, expanded MATLAB automated tests, and a pack-scaled simulation service.
+- Interactive MATLAB simulation dashboard with current, voltage, SOC and temperature plots plus CSV export.
 
 The SOC workflow currently supported by the tracked core is **Coulomb counting with an OCV–SOC lookup for the ECM voltage model**. The OCV lookup does not correct SOC from rested voltage. An EKF/SOH estimator is not part of the verified core source inventory.
 
@@ -54,6 +55,9 @@ Set MATLAB Current Folder to the canonical `Battery_Model` directory, then run:
 projectPaths = setupProject();
 Battery = initBattery();
 results = runAllTests();
+
+% Launch the interactive simulation dashboard
+app = BMSDashboard();
 ```
 
 See [Execution Guide](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/EXECUTION_GUIDE.md) for individual demonstrations and execution order.
