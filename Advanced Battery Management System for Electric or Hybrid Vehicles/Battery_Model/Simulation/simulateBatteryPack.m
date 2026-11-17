@@ -95,6 +95,7 @@ packOCV = zeros(1,n);
 overVoltage = false(1,n);
 underVoltage = false(1,n);
 chargeInhibited = false(1,n);
+chargeDerated = false(1,n);
 dischargeInhibited = false(1,n);
 Vrc = 0;
 soc(1) = InitialSOC;
@@ -112,6 +113,13 @@ for k = 1:n
              soc(k) >= Battery.MaximumSOC)
         appliedCellCurrent = 0;
         chargeInhibited(k) = true;
+    elseif appliedCellCurrent < 0 && ...
+            temperature(k) < Battery.LowTempChargeTemperatureThreshold
+        lowTempLimit = Battery.LowTempChargeCurrent;
+        if abs(appliedCellCurrent) > lowTempLimit
+            appliedCellCurrent = -lowTempLimit;
+            chargeDerated(k) = true;
+        end
     elseif appliedCellCurrent > 0 && ...
             (temperature(k) < Battery.MinCellTemperature || ...
              temperature(k) > Battery.MaxCellTemperature || ...
@@ -154,14 +162,17 @@ Results.CellTemperature_C = temperature(:);
 Results.OverVoltage = overVoltage(:);
 Results.UnderVoltage = underVoltage(:);
 Results.ChargeInhibited = chargeInhibited(:);
+Results.ChargeCurrentDerated = chargeDerated(:);
 Results.DischargeInhibited = dischargeInhibited(:);
 Results.DischargeCurrentScale = dischargeScale;
 Results.ChargeCurrentScale = chargeScale;
 Results.VoltageLimitViolationCount = sum(overVoltage | underVoltage);
 Results.ChargeInhibitionCount = sum(chargeInhibited);
+Results.ChargeDeratingCount = sum(chargeDerated);
 Results.DischargeInhibitionCount = sum(dischargeInhibited);
 Results.MaxCellDischargeCurrent_A = Battery.MaxDischargeCurrent;
 Results.MaxCellStandardChargeCurrent_A = Battery.StandardChargeCurrent;
+Results.LowTemperatureChargeCurrent_A = Battery.LowTempChargeCurrent;
 Results.ModelNote = ['Synthetic current profiles are scaled to configured project ' ...
     'cell-current limits. Cell current equals pack current divided by Np.'];
 end
