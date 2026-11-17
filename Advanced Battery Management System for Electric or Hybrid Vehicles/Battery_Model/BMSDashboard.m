@@ -7,6 +7,8 @@ function app = BMSDashboard()
 % ECM, Coulomb-counting and lumped thermal functions. It is not a live BMS,
 % a hardware interface, a certified protection system or a vehicle simulator.
 
+% Configure canonical source paths so the dashboard can be launched directly.
+setupProject();
 Battery = initBattery();
 
 fig = uifigure('Name','Advanced Battery Management System — Simulation Dashboard', ...
