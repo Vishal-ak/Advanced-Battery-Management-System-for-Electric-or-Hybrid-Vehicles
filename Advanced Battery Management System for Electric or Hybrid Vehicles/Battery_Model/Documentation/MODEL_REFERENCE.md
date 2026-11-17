@@ -1,12 +1,14 @@
 # Model Reference and Engineering Conventions
 
-This document describes the models present in the MATLAB source tree. It is not a substitute for cell characterization, manufacturer limits or a validated BMS safety concept.
+This document describes the MATLAB models present in the tracked source tree. It is not a substitute for cell characterization, manufacturer limits or a validated BMS safety concept.
 
-## 1. Reference cell
+## 1. Reference cell and parameter provenance
 
-The project initializes a Panasonic NCR18650B cylindrical cell. The nominal values in code and the cell-library documents are model inputs, not a guarantee that every physical cell has those exact properties.
+The configured reference cell is Panasonic NCR18650B. The project initializer, `Parameters/initBattery.m`, is the runtime source for the current model parameters. Its values must be reconciled against the exact manufacturer datasheet revision and documented test conditions before being described as manufacturer specifications.
 
-Use the manufacturer datasheets in `Cell_Library/Panasonic_NCR18650B/Datasheet/` as the primary reference for operating limits. Record the exact datasheet revision and test conditions when citing a numerical value. The model's selected capacity, resistance and thermal parameters should be treated as assumptions unless a traceable measurement or source is recorded.
+The current initialization includes (V_{nom}=3.70\,V), (V_{max}=4.20\,V), (V_{cutoff}=2.50\,V), design capacity (3.35\,Ah), (R_0=0.045\,\Omega), (R_1=0.012\,\Omega), (C_1=2400\,F), and preliminary 2RC values (R_2=0.015\,\Omega), (C_2=8000\,F). A separate `InternalResistance=0.05 Ω` is also present; this must be reconciled rather than silently treated as identical to the ECM's (R_0).
+
+The OCV–SOC CSV is loaded from `Cell_Library/Panasonic_NCR18650B/Data/OCV_SOC.csv`. Its provenance, measurement temperature, rest period, charge/discharge direction, SOC reference and preprocessing are not established by the data file alone.
 
 ## 2. Sign conventions and units
 
@@ -16,122 +18,126 @@ Use the manufacturer datasheets in `Cell_Library/Panasonic_NCR18650B/Datasheet/`
 | SOC | Fraction from 0 to 1 |
 | Voltage | Volts (V) |
 | Current | Amperes (A) |
-| Capacity | Ampere-hours (Ah), or coulombs (C) where explicitly stated |
+| Capacity | Ah, converted to coulombs where required |
 | Time | Seconds (s) |
 | Resistance | Ohms (Ω) |
 | Capacitance | Farads (F) |
-| Temperature | Degrees Celsius for reported temperature; temperature differences are equivalent in K |
+| Temperature | °C for reported temperature; temperature difference in K |
 | Energy | Wh or kWh, as labelled |
 
-Maintain this convention consistently when constructing current profiles or comparing outputs.
+## 3. OCV lookup
 
-## 3. OCV–SOC lookup
-
-The open-circuit voltage is obtained from a tabulated relationship:
+The ECM obtains open-circuit voltage by interpolation:
 
 [
 V_{OC}=f(SOC)
 ]
 
-The MATLAB implementation interpolates the stored OCV–SOC data. OCV is not the same as loaded terminal voltage: under current, ohmic and polarization drops must also be considered.
+In the current implementation, OCV lookup is a model input to the ECM. It is not an independent online SOC estimator. The tracked coulomb-counting function does not use terminal-voltage feedback or perform a rest-detection correction.
 
-The quality of the OCV estimate depends on the source dataset, cell chemistry, temperature, rest period, SOC calibration and interpolation range. Do not describe the table as measured in this project unless its provenance and test procedure are documented.
+The table must have finite, unique, monotonically increasing SOC entries and matching finite OCV values. Lookup should be bounded to its characterized SOC range; extrapolation outside the data range should not be treated as validated behavior.
 
 ## 4. First-order Thevenin ECM (1RC)
 
-The first-order model represents the cell with an OCV source, a series ohmic resistance (R_0), and one parallel polarization (R_1-C_1) branch.
+The model consists of an OCV source, a series ohmic resistance (R_0), and one parallel polarization branch (R_1-C_1).
 
 With positive current defined as discharge:
 
 [
-V_t = V_{OC}(SOC)-I R_0-V_{RC}
+V_t=V_{OC}(SOC)-IR_0-V_{RC}
 ]
-
-The polarization state follows:
 
 [
-rac{dV_{RC}}{dt}=-rac{V_{RC}}{R_1C_1}+rac{I}{C_1}
+\frac{dV_{RC}}{dt}=-\frac{V_{RC}}{R_1C_1}+\frac{I}{C_1}
 ]
 
-For a zero-order-held current over a time step (Delta t), the exact discrete update is:
+For a zero-order-held current over (Delta t), the exact discrete update used by `updateRCVoltage.m` is:
 
 [
-V_{RC,k+1}=e^{-Delta t/(R_1C_1)}V_{RC,k}
-+R_1left(1-e^{-Delta t/(R_1C_1)}ight)I_k
+V_{RC,k+1}=e^{-\Delta t/(R_1C_1)}V_{RC,k}
++R_1(1-e^{-\Delta t/(R_1C_1)})I_k
 ]
 
-This model is a compact approximation of dynamic voltage response. It does not explicitly resolve electrochemical diffusion or spatial gradients.
+The terminal-voltage prediction is not clipped to cell limits. The 1RC function reports overvoltage and undervoltage flags. A full supervisory protection response is not implemented by this ECM function.
 
 ## 5. Second-order Thevenin ECM (2RC)
 
-The optional 2RC model adds a second polarization branch:
+The optional model adds a second polarization branch:
 
 [
 V_t=V_{OC}(SOC)-IR_0-V_{RC1}-V_{RC2}
 ]
 
-Each branch has its own resistance-capacitance time constant. A second branch can represent an additional dynamic timescale, but it does not automatically make the model more accurate. The values of (R_2) and (C_2) currently added to the initialized parameter structure are preliminary and require parameter identification against pulse or dynamic test data.
+The two branches represent different dynamic time constants. The currently initialized (R_2,C_2) values are preliminary and require parameter identification against traceable pulse or dynamic-test data. A second branch does not automatically make predictions more accurate.
 
-## 6. Terminal-voltage limits
+## 6. State of charge
 
-The ECM returns its predicted terminal voltage without clipping it to the configured maximum or cutoff voltage. It also returns status flags for overvoltage and undervoltage.
-
-This separation is intentional: clipping a physical model output can hide a predicted limit violation. A supervisory BMS would need a separate, validated response such as current derating or contactor control. The current MATLAB functions only report status; they are not a complete protection architecture.
-
-## 7. State of charge by Coulomb counting
-
-The implemented SOC function updates charge state by integrating current:
+The implemented SOC update is Coulomb counting:
 
 [
-SOC_{k+1}=SOC_k-rac{eta I_kDelta t}{Q_n}
+SOC_{k+1}=\operatorname{clip}_{[0,1]}
+\left(SOC_k-\frac{I_k\Delta t}{3600Q_{Ah}}\right)
 ]
 
-where (Q_n) is capacity in coulombs and (eta) is the applicable coulombic-efficiency convention. Confirm the function's actual argument units and efficiency handling before applying this equation to a particular call. Numerical drift can arise from current-sensor bias, capacity uncertainty, efficiency assumptions and initial-SOC error.
+Positive current decreases SOC; negative current increases SOC. The current function assumes current in A, time in seconds and capacity in Ah. It clips to [0,1] and does not model coulombic efficiency, current-sensor bias, self-discharge or capacity fade.
 
-An EKF or other observer is not currently included as a validated module in the tracked source tree.
+The OCV table supplies (V_{OC}) to the ECM for a given SOC. **This is not OCV-based SOC correction.** A true OCV-rest correction would require rest detection, hysteresis/temperature treatment and a validated lookup procedure. No EKF is established as part of the verified core implementation.
 
-## 8. Lumped thermal model
+## 7. Lumped thermal model
 
-The thermal model is a lumped approximation: it treats the cell as a single thermal node rather than resolving internal or surface temperature gradients.
-
-A generic energy balance is:
+The thermal model is a single-node approximation:
 
 [
-m c_prac{dT}{dt}=dot Q_{gen}-dot Q_{out}
+m c_p\frac{dT}{dt}=\dot Q_{gen}-\frac{T-T_{amb}}{R_{th}}
 ]
 
-The implemented heat-generation and temperature-update functions use the parameters defined by the project. The model should not be interpreted as a thermal-runaway model or a substitute for distributed thermal analysis. Validate heat-generation assumptions, thermal resistance and heat capacity against measured data before making temperature-safety claims.
-
-## 9. Battery-pack scaling
-
-For (N_s) cells in series and (N_p) parallel strings, assuming identical cells and ideal interconnections:
+The current heat-generation implementation uses irreversible ohmic heating:
 
 [
-V_{pack}=N_sV_{cell},qquad
-Q_{pack}=N_pQ_{cell}
+\dot Q_{gen}=I^2R_0
+]
+
+This omits reversible entropic heat, temperature-dependent parameters and internal temperature gradients. The temperature update uses explicit Euler integration, whose accuracy depends on the time step relative to the thermal time constant (m c_pR_{th}). It is not a thermal-runaway or propagation model.
+
+## 8. Pack scaling
+
+For (N_s) series cells and (N_p) parallel strings, assuming identical cells and ideal interconnections:
+
+[
+V_{pack}=N_sV_{cell},\qquad Q_{pack}=N_pQ_{cell}
 ]
 
 [
-R_{pack}=R_{cell}rac{N_s}{N_p},qquad
+R_{pack}=R_{cell}\frac{N_s}{N_p},\qquad
 N_{cells}=N_sN_p
 ]
 
-Nominal energy is approximated as (E_{Wh}=V_{nom,pack}Q_{Ah,pack}). These relationships neglect interconnect resistance, cell mismatch, thermal gradients, balancing currents and dynamic limits.
+Nominal energy is approximated as (E_{Wh}=V_{nom,pack}Q_{Ah,pack}). These relations neglect mismatch, interconnect resistance, cooling, balancing currents, thermal gradients and dynamic limits.
 
-The pack mass estimate includes cell mass plus configured BMS, enclosure, busbar and wiring allowances. The hardware values are estimates. The reported volumetric energy density uses summed cell-envelope volume and is not the complete external pack density. The current design cost estimate is cell-only.
+The pack mass estimate includes cell mass plus configured pack-level hardware allowances. The volume estimate uses summed cell-envelope volume only, not complete assembled-pack volume. The pack design cost estimate is cell-only.
 
-## 10. Pack sizing and validation
+## 9. Pack sizing and validation
 
-The pack-sizing routine searches a bounded neighbourhood around an initial series/parallel estimate and scores feasible candidates. It is a heuristic, not a proof of global optimality. Its result depends on the search window, score weights and input assumptions.
+The custom pack-sizing routine evaluates a bounded search window around estimated series/parallel counts and uses a weighted heuristic score. It is not a global optimizer and does not currently guarantee electrical, thermal, mechanical, cost or safety feasibility beyond its explicit checks.
 
-The pack validator checks internal consistency and any application-specific limits supplied by the caller. Unspecified application limits should remain unspecified rather than being presented as universal battery limits.
+The pack validator performs internal consistency checks and evaluates application limits only when supplied by the caller. Missing application requirements are not universal defaults.
 
-## 11. Passive balancing and regenerative braking
+The commercial pack recommender calculates a weighted score from normalized voltage/capacity mismatch, mass and volume. Its current implementation needs robust handling of invalid values and zero normalization ranges before the result should be used for design decisions.
 
-The passive-balancing function is a simplified switched-shunt demonstration. Its ideal resistor current follows (I_{bleed}=V_{cell}/R_{bleed}) when a shunt is enabled. The implementation does not model switch losses, resistor thermal rise, cell impedance, balancing energy or a complete charge-state-dependent control policy.
+## 10. Passive balancing
 
-The regenerative-braking function estimates a simplified charge-current limit using SOC, temperature and voltage-headroom factors. It is not a validated electrochemical charge-acceptance or lithium-plating model. Real charge acceptance depends on cell condition, temperature, SOC, current history and manufacturer constraints.
+The current function selects cells whose voltages exceed the minimum cell voltage by a configurable threshold, under a simplified top-balance enable condition. Enabled shunts use the ideal relation:
 
-## 12. Model validation requirements
+[
+I_{bleed}=\frac{V_{cell}}{R_{bleed}}
+]
 
-Before making quantitative performance claims, identify model parameters from traceable cell tests, separate calibration and validation datasets, compare predictions with independent measurements, report error metrics and document operating conditions. Unit tests alone do not establish predictive accuracy.
+The code does not model resistor temperature, switching losses, cell impedance, balancing duration or an experimentally validated control policy.
+
+## 11. Regenerative-braking current estimate
+
+The regenerative-braking function applies simple SOC and temperature derating factors and constrains charge current using a configured limit and a simplified voltage-headroom calculation. It is not a validated electrochemical charge-acceptance or lithium-plating model. Real charge acceptance depends on cell chemistry, condition, temperature, SOC, current history and manufacturer restrictions.
+
+## 12. Model-validation requirements
+
+Identify parameters from traceable cell tests. Separate calibration and held-out validation datasets. Compare predicted voltage, SOC and temperature with independent measurements. Report RMSE, MAE, maximum absolute error, operating conditions, data provenance and uncertainty. Unit tests alone do not establish predictive accuracy.
