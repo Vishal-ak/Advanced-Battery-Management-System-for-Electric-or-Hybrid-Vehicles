@@ -1,19 +1,16 @@
 function Vt = terminalVoltage(OCV,current,R0,Vrc)
-%===========================================================
-% TERMINAL VOLTAGE
-%
-% Calculates battery terminal voltage.
-%
-% Inputs
-%   OCV
-%   current
-%   R0
-%   Vrc
-%
-% Output
-%   Vt
-%===========================================================
+%TERMINALVOLTAGE Calculate 1RC Thevenin terminal voltage.
+% Positive current denotes discharge; voltage is not clipped to limits.
 
-Vt = OCV - current*R0 - Vrc;
-
+inputs = {OCV,current,R0,Vrc};
+valid = cellfun(@(v) isnumeric(v) && isreal(v) && ...
+    isscalar(v) && isfinite(v),inputs);
+if ~all(valid)
+    error('BMS:InvalidTerminalVoltageInput', ...
+        'OCV, current, R0 and Vrc must be finite real numeric scalars.');
+end
+if R0 <= 0
+    error('BMS:InvalidECMParameter','R0 must be positive.');
+end
+Vt = OCV-current*R0-Vrc;
 end
