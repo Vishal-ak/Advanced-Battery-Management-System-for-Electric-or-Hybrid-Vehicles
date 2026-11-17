@@ -40,26 +40,26 @@ verifyEqual(testCase,Iregen,0);
 verifyEqual(testCase,eta,0);
 end
 
-function testRegenDisabledAtChargeTemperatureLimits(testCase)
+function testRegenUsesQuarterCRateBelowTenDegrees(testCase)
 Battery = initBattery();
 Pack = createBatteryPack(Battery,13,6,false);
-[IatLower,etaLower] = calcRegenerativeBraking( ...
-    -1000,Pack.NominalVoltage,0.70,Battery.MinChargeTemperature,Pack);
-[IatUpper,etaUpper] = calcRegenerativeBraking( ...
-    -1000,Pack.NominalVoltage,0.70,Battery.MaxChargeTemperature,Pack);
-verifyEqual(testCase,IatLower,0);
-verifyEqual(testCase,etaLower,0);
-verifyEqual(testCase,IatUpper,0);
-verifyEqual(testCase,etaUpper,0);
+[Iregen,eta] = calcRegenerativeBraking( ...
+    -100000,Pack.NominalVoltage,0.70,5,Pack);
+verifyGreaterThan(testCase,eta,0);
+verifyLessThanOrEqual(testCase,abs(Iregen),Pack.LowTempChargeCurrent+1e-10);
+verifyEqual(testCase,Pack.LowTempChargeCurrent, ...
+    0.25*Battery.DesignCapacity*Pack.Np,'AbsTol',1e-12);
 end
 
-function testRegenTapersNearUpperChargeTemperature(testCase)
+function testRegenDisabledOutsideChargeTemperatureWindow(testCase)
 Battery = initBattery();
 Pack = createBatteryPack(Battery,13,6,false);
-[~,etaNominal] = calcRegenerativeBraking( ...
-    -1000,Pack.NominalVoltage,0.70,25,Pack);
-[~,etaHot] = calcRegenerativeBraking( ...
-    -1000,Pack.NominalVoltage,0.70,44,Pack);
-verifyGreaterThan(testCase,etaNominal,etaHot);
-verifyGreaterThan(testCase,etaHot,0);
+[Ibelow,etaBelow] = calcRegenerativeBraking( ...
+    -1000,Pack.NominalVoltage,0.70,-0.1,Pack);
+[Iabove,etaAbove] = calcRegenerativeBraking( ...
+    -1000,Pack.NominalVoltage,0.70,45.1,Pack);
+verifyEqual(testCase,Ibelow,0);
+verifyEqual(testCase,etaBelow,0);
+verifyEqual(testCase,Iabove,0);
+verifyEqual(testCase,etaAbove,0);
 end
