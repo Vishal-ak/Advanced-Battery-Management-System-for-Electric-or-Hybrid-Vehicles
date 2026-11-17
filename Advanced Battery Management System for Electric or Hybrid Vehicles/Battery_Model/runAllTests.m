@@ -1,28 +1,31 @@
 function results = runAllTests()
-% runAllTests  Run the automated MATLAB unit-test suite.
-%
-% Usage (from the canonical Battery_Model folder):
-%   results = runAllTests();
+%RUNALLTESTS Run the automated MATLAB tests from the canonical project tree.
+% Usage: results = runAllTests();
 
 projectRoot = fileparts(mfilename('fullpath'));
+originalFolder = pwd;
+restoreFolder = onCleanup(@() cd(originalFolder));
 cd(projectRoot);
 
-% Configure only the canonical source tree and automated test directory.
 setupProject();
 
-testFolder = fullfile(projectRoot, 'Tests', 'Automated_Test_File');
+testFolder = fullfile(projectRoot,'Tests','Automated_Test_File');
 if ~isfolder(testFolder)
     error('BMS:MissingTestFolder', ...
-        'Automated test folder not found: %s', testFolder);
+        'Automated test folder not found: %s',testFolder);
 end
 
 results = runtests(testFolder);
-disp(table(results));
+disp(results);
 
-if any([results.Failed]) || any([results.Incomplete])
+failedCount = sum([results.Failed]);
+incompleteCount = sum([results.Incomplete]);
+fprintf('\nAutomated test summary: %d total, %d failed, %d incomplete.\n', ...
+    numel(results),failedCount,incompleteCount);
+
+if failedCount > 0 || incompleteCount > 0
     error('BMS:AutomatedTestsFailed', ...
         'One or more automated unit tests failed or did not complete.');
 end
-
-fprintf('All %d automated unit tests passed.\n', numel(results));
+fprintf('All %d automated tests passed.\n',numel(results));
 end

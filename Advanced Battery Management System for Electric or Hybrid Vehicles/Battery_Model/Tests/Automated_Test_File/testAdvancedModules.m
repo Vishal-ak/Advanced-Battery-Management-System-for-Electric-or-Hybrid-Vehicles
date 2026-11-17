@@ -39,4 +39,27 @@ Pack = createBatteryPack(Battery,13,6,false);
 verifyEqual(testCase,Iregen,0);
 verifyEqual(testCase,eta,0);
 end
+
+function testRegenUsesQuarterCRateBelowTenDegrees(testCase)
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+[Iregen,eta] = calcRegenerativeBraking( ...
+    -100000,Pack.NominalVoltage,0.70,5,Pack);
+verifyGreaterThan(testCase,eta,0);
+verifyLessThanOrEqual(testCase,abs(Iregen),Pack.LowTempChargeCurrent+1e-10);
+verifyEqual(testCase,Pack.LowTempChargeCurrent, ...
+    0.25*Battery.DesignCapacity*Pack.Np,'AbsTol',1e-12);
+end
+
+function testRegenDisabledOutsideChargeTemperatureWindow(testCase)
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+[Ibelow,etaBelow] = calcRegenerativeBraking( ...
+    -1000,Pack.NominalVoltage,0.70,-0.1,Pack);
+[Iabove,etaAbove] = calcRegenerativeBraking( ...
+    -1000,Pack.NominalVoltage,0.70,45.1,Pack);
+verifyEqual(testCase,Ibelow,0);
+verifyEqual(testCase,etaBelow,0);
+verifyEqual(testCase,Iabove,0);
+verifyEqual(testCase,etaAbove,0);
 end

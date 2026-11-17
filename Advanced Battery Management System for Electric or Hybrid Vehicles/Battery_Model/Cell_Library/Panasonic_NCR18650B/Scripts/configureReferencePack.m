@@ -1,55 +1,22 @@
-%% ==========================================================
-% Battery Parameters
-% Panasonic NCR18650B
-% ===========================================================
-
+%% Configure and display the canonical reference-cell pack
+% All cell parameters are sourced from Parameters/initBattery.m.
 Battery = initBattery();
-
-%% Cell Parameters
-
-Capacity = Battery.DesignCapacity;       % Ah
-Q = Capacity * 3600;                     % Coulombs
-
-NominalVoltage = Battery.NominalVoltage;
-MaximumVoltage = Battery.MaximumVoltage;
-CutoffVoltage  = Battery.CutoffVoltage;
-
-%% ECM Parameters
-
-R0 = Battery.InternalResistance;
-
-% Temporary values
-R1 = 0.0015;
-C1 = 3.5e4;
-
-%% Battery Pack
 
 Ns = 80;
 Np = 1;
+Pack = createBatteryPack(Battery,Ns,Np,false);
 
-PackCapacity = Capacity * Np;       % Ah
-Q_batt = Q * Np;                    % Coulombs
-
-V_nominal = Ns * NominalVoltage;
-V_max     = Ns * MaximumVoltage;
-V_cutoff  = Ns * CutoffVoltage;
-
-Energy_nominal = V_nominal * PackCapacity;   % Wh
-
-%% Display
-
-fprintf('\n');
+fprintf('\n========================================\n');
+fprintf(' Panasonic NCR18650B Reference Pack\n');
 fprintf('========================================\n');
-fprintf(' Panasonic NCR18650B Battery Pack\n');
-fprintf('========================================\n');
-
-fprintf('Cell Capacity        : %.2f Ah\n', Capacity);
-fprintf('Pack Capacity        : %.2f Ah\n', PackCapacity);
-fprintf('Nominal Voltage      : %.2f V\n', V_nominal);
-fprintf('Maximum Voltage      : %.2f V\n', V_max);
-fprintf('Cutoff Voltage       : %.2f V\n', V_cutoff);
-fprintf('Pack Energy          : %.2f Wh\n', Energy_nominal);
-fprintf('Series Cells (Ns)    : %d\n', Ns);
-fprintf('Parallel Cells (Np)  : %d\n', Np);
-
+fprintf('Cell capacity        : %.2f Ah\n',Battery.DesignCapacity);
+fprintf('Pack capacity        : %.2f Ah\n',Pack.Capacity);
+fprintf('Nominal voltage      : %.2f V\n',Pack.NominalVoltage);
+fprintf('Maximum voltage      : %.2f V\n',Pack.MaximumVoltage);
+fprintf('Cutoff voltage       : %.2f V\n',Pack.CutoffVoltage);
+fprintf('Pack energy          : %.2f Wh\n',Pack.Energy_Wh);
+fprintf('Series cells         : %d\n',Ns);
+fprintf('Parallel cells       : %d\n',Np);
+fprintf('ECM R0 / R1 / C1     : %.4f Ohm / %.4f Ohm / %.1f F\n', ...
+    Battery.R0,Battery.R1,Battery.C1);
 fprintf('========================================\n');

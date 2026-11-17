@@ -2,31 +2,104 @@
 
 ## 1. Setup
 
-Set MATLAB Current Folder to this `Battery_Model` directory, then run:
+Set MATLAB Current Folder to this canonical `Battery_Model` directory. Run:
 
 ```matlab
 projectPaths = setupProject();
 Battery = initBattery();
-```
 
-Check function resolution when troubleshooting:
-
-```matlab
 which initBattery -all
 which batteryECM -all
+which simulateBatteryPack -all
+which BMSDashboard -all
 ```
 
-## 2. Automated tests
+Confirm that the resolved functions point into this Battery_Model tree. `setupProject` adds both `Simulation` and `Simulation/CurrentProfile` to the MATLAB path.
+
+## 2. Automated unit tests
 
 ```matlab
 results = runAllTests();
+disp(results);
 ```
 
-The automated suite currently covers selected ECM, SOC and thermal assertions. Passing these tests does not constitute hardware qualification, model validation against measured data, or safety certification.
+The automated suite covers selected ECM, SOC, thermal, 2RC, pack scaling, database parsing, passive-balancing, regenerative-current, simulation and invalid-input assertions. Record MATLAB release, date, test count and passed/failed/incomplete totals. Test files being present is not proof they have been executed.
 
-## 3. Demonstrations
+## 3. Interactive simulation dashboard
 
-Run scripts individually from this directory:
+Launch the programmatic MATLAB UI:
+
+```matlab
+app = BMSDashboard();
+```
+
+Dashboard controls:
+- Series-cell count (N_s) and parallel-string count (N_p).
+- Initial SOC and initial cell temperature.
+- Current profile: synthetic drive cycle, constant discharge, constant charge, step discharge or pulse discharge.
+- Ambient temperature, time step and simulation duration.
+- Run simulation and export the output time series as CSV.
+
+The dashboard shows applied pack/cell current, pack terminal voltage, Coulomb-counting SOC and single-cell lumped temperature. It also reports peak temperature, voltage-limit flags, charge/discharge current inhibition, low-temperature derating and SOC-boundary current limiting.
+
+Retrieve the last completed run from the returned app struct:
+
+```matlab
+R = app.GetResults();
+```
+
+The dashboard is offline and model-based. It does not connect to hardware, sensors, CAN, a charger or a vehicle. It is not a safety controller.
+
+## 4. Core model examples
+
+### Cell and ECM
+
+```matlab
+Battery = initBattery();
+[Vt,Vrc,OCV,Status] = batteryECM(0.70,2.0,0,1.0,Battery);
+disp(Status)
+```
+
+### Coulomb-counting SOC
+
+```matlab
+SOC1 = coulombCounting(0.70,2.0,60,Battery.DesignCapacity);
+```
+
+The implemented SOC estimator is Coulomb counting. The OCV table supplies the ECM open-circuit voltage; it does not perform rest-based SOC correction or EKF estimation.
+
+### Two-RC ECM
+
+```matlab
+[Vt,Vrc1,Vrc2,OCV,Status] = batteryECM_2RC( ...
+    0.70,2.0,0,0,1.0,Battery);
+```
+
+The two RC-state update and 2RC terminal-voltage helper functions are included in the ECM directory. The second branch parameters are preliminary and require identification.
+
+### Pack design
+
+```matlab
+Pack = createBatteryPack(Battery,13,6,false);
+Validation = validatePack(Pack);
+```
+
+The application-specific limits passed to `validatePack` must come from the real system requirements. Example thresholds are not safety recommendations.
+
+### Pack-scaled simulation outside the UI
+
+```matlab
+Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
+R = simulateBatteryPack(Battery,Pack,0.80,25,25,1,300, ...
+    "Synthetic drive cycle");
+```
+
+The drive-cycle function provides a synthetic pack-current shape. The service scales charge/discharge current commands to configured limits, converts pack current to per-cell current by dividing by Np, applies the 0.25C cell charge limit below 10 °C, inhibits current outside configured temperature limits, and limits each integration step so SOC does not cross the configured minimum/maximum operating window. This is a model-side educational constraint, not a certified protection strategy.
+
+## 5. Demonstration scripts
+
+Run each script individually from this directory:
 
 ```matlab
 run('Tests/testSOC.m')
@@ -41,46 +114,24 @@ run('Tests/testRecommendPack.m')
 run('Tests/testBatteryDesigner.m')
 ```
 
-## 4. New model modules
+Some scripts clear the workspace and figures. Run them separately.
 
-- `batteryECM`: first-order Thevenin model. Returns an unclipped voltage prediction and a fourth output, `Status`, with over/under-voltage flags.
-- `batteryECM_2RC`: second-order dual-polarization model; requires R2/C2 in the cell parameter structure.
-- `estimateSOC_EKF`: experimental SOC estimator using terminal-voltage feedback.
-- `estimateSOH`: semi-empirical capacity-fade and resistance-growth estimator.
-- `passiveCellBalancing`: switched shunt-resistor balancing prototype.
-- `bmsProtectionLogic`: supervisory state-machine prototype.
-- `thermalManagementController`: illustrative active heating/cooling controller.
-- `driveCycleDynamics`: synthetic road-load/velocity profile generator, not an official WLTP/UDDS data trace.
+## 6. Known limitations
 
-## 5. Pack sizing and interpretation
+- The exact cell variant and parameter values need reconciliation against a traceable datasheet revision and cell-characterization data.
+- `InternalResistance=0.050 Ω` and ECM `R0=0.045 Ω` remain separate configured values and need engineering reconciliation.
+- The 2RC branch parameters are not identified from documented test data.
+- Commercial pack recommendations depend on the provenance and completeness of the workbook and remain heuristic.
+- Custom pack sizing is a bounded heuristic, not a global or safety-constrained optimizer.
+- The thermal model is single-node, uses (I^2R_0), and needs timestep-convergence and measured-data validation.
+- Pack hardware mass uses estimates; volume is cell-envelope-only and cost is cell-only.
+- Passive balancing and regenerative-braking functions are educational algorithms, not production safety functions.
+- No ISO 26262 compliance, safety certification, hardware validation or production readiness is claimed.
 
-```matlab
-Battery = initBattery();
-Pack = createBatteryPack(Battery,13,6);
-Validation = validatePack(Pack);
-```
+## 7. Legacy result figures
 
-The estimated pack mass includes cell mass plus configured pack-level BMS, enclosure, busbar and wiring allowances. Those allowances are estimates, not measured masses.
+The previously committed dynamic ECM figure set was generated by applying the 8–30 A pack-current profile directly to the single-cell ECM. This exceeded the configured 5 A per-cell discharge current. Treat those older dynamic plots as legacy and non-representative. Rerun `Tests/testDynamicECM.m` to regenerate pack-scaled plots before using them in a formal report.
 
-The reported pack volume and Wh/L value use the sum of cell envelopes only. They exclude enclosure, cooling, busbars, spacing and other packaging overhead, so do not compare that value directly with a commercial pack's complete-pack volumetric energy density.
+## 8. Reporting test results
 
-The cost estimate is cell-only. It excludes pack hardware, assembly, testing and logistics.
-
-## 6. Application requirements
-
-Use project-specific requirements rather than universal fixed thresholds:
-
-```matlab
-Req.MaxPackVoltage_V = 60;
-Req.MaxPackMass_kg = 5;
-Req.MaxCellCount = 100;
-Req.MinCapacity_Ah = 20;
-Req.MinDischargeCurrent_A = 25;
-Validation = validatePack(Pack,Req);
-```
-
-The numbers above are examples only. Supply values from the actual system requirements.
-
-## 7. Limitations
-
-The EKF and SOH model require parameter identification and validation against independent data. The drive-cycle generator is illustrative. The balancing, protection and thermal-management algorithms are educational prototypes, not certified safety functions. No ISO 26262 compliance is claimed. The pack design search is heuristic. No editable integrated Simulink `.slx` model is included in this source tree.
+Use the actual MATLAB test-run output. Report MATLAB version, operating system, test date, test count, pass/fail/incomplete counts and diagnostics. Do not insert hypothetical or unexecuted test results into the project report.

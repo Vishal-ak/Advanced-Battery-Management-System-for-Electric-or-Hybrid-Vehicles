@@ -1,168 +1,129 @@
-%% ==========================================================
-% testDynamicECM.m
-%
-% Project:
-% Advanced Battery Management System for Electric & Hybrid Vehicles
-%
-% Tests the 1RC Equivalent Circuit Model (ECM)
-% using time-varying battery current profiles.
-%
-% The script evaluates battery terminal voltage, OCV, and SOC
-% under dynamic operating conditions.
-%
-% Author: Vishal Mishra
-%% ==========================================================
+%% Dynamic 1RC ECM simulation for a 13S6P reference pack
+% driveCycleCurrent returns PACK current (A). The cell ECM is a single-cell
+% model, so divide pack current by Np before applying it to the cell model.
+% The selected 13S6P configuration gives 30 A pack discharge = 5 A/cell.
 
 clear;
 clc;
 close all;
 
-%% Initialize Battery Model
-% Load the reference battery-cell parameters and model data
-% required for the ECM and SOC calculations.
-
 Battery = initBattery();
+Pack = createBatteryPack(Battery,13,6,false);
 
-%% Simulation Settings
-% Define the simulation time step and total simulation duration.
-% The time vector is used to evaluate the battery response
-% under dynamic current conditions.
-
-dt = 1;                 % Time step (s)
-T_end = 300;            % Total simulation time (s)
-
+dt = 1;
+T_end = 300;
 t = 0:dt:T_end;
 
-%% Select Current Profile
-% Select one of the available current profiles for the dynamic
-% ECM simulation. Uncomment ONLY ONE profile at a time.
-%
-% Constant current: fixed discharge current.
-% Step current: current changes between predefined levels.
-% Pulse current: periodic high-current pulses.
-% Drive cycle: time-varying current representing dynamic operation.
+PackCurrent = driveCycleCurrent(t);
+CellCurrent = PackCurrent/Pack.Np;
 
-% Current = constantCurrent(t,8);
-
-% Current = stepCurrent(t);
-
-% Current = pulseCurrent(t);
-
-Current = driveCycleCurrent(t);
-
-%% Initialize Battery State Variables
-% Allocate memory for SOC, terminal voltage, and OCV.
-% The initial SOC is set to 100%, and the RC polarization
-% voltage is initialized to zero.
-
-SOC = zeros(size(t));
-SOC(1) = 1.0;               % Initial SOC (100%)
-
-Voltage = zeros(size(t));
-OCV = zeros(size(t));
-
-Vrc = 0;                    % Initial RC polarization voltage (V)
-
-%% Dynamic ECM Simulation
-% At each time step:
-% 1. Update SOC using Coulomb Counting.
-% 2. Calculate terminal voltage and OCV using the 1RC ECM.
-%
-% The previous time-step current is used for SOC integration.
-
-for k = 1:length(t)
-
-    if k > 1
-
-        SOC(k) = coulombCounting( ...
-            SOC(k-1), ...
-            Current(k-1), ...
-            dt, ...
-            Battery.DesignCapacity);
-
-    end
-
-    [Voltage(k), Vrc, OCV(k)] = batteryECM( ...
-        SOC(k), ...
-        Current(k), ...
-        Vrc, ...
-        dt, ...
-        Battery);
-
+if any(PackCurrent > Pack.MaxDischargeCurrent)
+    error('BMS:DriveCycleExceedsDischargeLimit', ...
+        'Pack current profile exceeds the configured pack discharge-current limit.');
+end
+if any(PackCurrent < -Pack.StandardChargeCurrent)
+    warning('BMS:DriveCycleExceedsStandardCharge', ...
+        'Regenerative current exceeds the configured standard charge-current level; verify cell charge limits.');
 end
 
-%% Display Simulation Information
-% Display the selected current profile and the main simulation
-% parameters, including initial/final SOC and current range.
+InitialSOC = 0.80; % Leave headroom for the regenerative-braking interval.
+SOC = zeros(size(t));
+SOC(1) = InitialSOC;
+CellVoltage = zeros(size(t));
+PackVoltage = zeros(size(t));
+OCV = zeros(size(t));
+OverVoltage = false(size(t));
+UnderVoltage = false(size(t));
 
-fprintf('\n');
+Vrc = 0;
+for k = 1:numel(t)
+    if k > 1
+        SOC(k) = coulombCounting(SOC(k-1),CellCurrent(k-1), ...
+            dt,Battery.DesignCapacity);
+    end
+
+    [CellVoltage(k),Vrc,OCV(k),Status] = batteryECM( ...
+        SOC(k),CellCurrent(k),Vrc,dt,Battery);
+
+    PackVoltage(k) = CellVoltage(k)*Pack.Ns;
+    OverVoltage(k) = Status.OverVoltage;
+    UnderVoltage(k) = Status.UnderVoltage;
+end
+
+fprintf('\n====================================================\n');
+fprintf('             Dynamic 1RC ECM Simulation\n');
 fprintf('====================================================\n');
-fprintf('              Dynamic ECM Simulation\n');
+fprintf('Reference pack       : %s (%d cells)\n',Pack.Configuration,Pack.TotalCells);
+fprintf('Cell model           : %s\n',Battery.CellModel);
+fprintf('Initial SOC          : %.4f\n',SOC(1));
+fprintf('Final SOC            : %.4f\n',SOC(end));
+fprintf('Simulation time      : %.1f s\n',T_end);
+fprintf('Time step            : %.2f s\n',dt);
+fprintf('Pack current range   : %.2f to %.2f A\n', ...
+    min(PackCurrent),max(PackCurrent));
+fprintf('Cell current range   : %.2f to %.2f A\n', ...
+    min(CellCurrent),max(CellCurrent));
+fprintf('Configured cell max discharge current: %.2f A\n', ...
+    Battery.MaxDischargeCurrent);
+fprintf('Overvoltage samples  : %d\n',sum(OverVoltage));
+fprintf('Undervoltage samples : %d\n',sum(UnderVoltage));
+fprintf('Pack voltage range   : %.2f to %.2f V\n', ...
+    min(PackVoltage),max(PackVoltage));
 fprintf('====================================================\n');
 
-fprintf('Current Profile     : Drive Cycle\n');
-fprintf('Initial SOC         : %.2f\n', SOC(1));
-fprintf('Final SOC           : %.4f\n', SOC(end));
-fprintf('Simulation Time     : %.2f s\n', T_end);
-fprintf('Time Step           : %.2f s\n', dt);
-fprintf('Initial Current     : %.2f A\n', Current(1));
-fprintf('Maximum Current     : %.2f A\n', max(Current));
-fprintf('Minimum Current     : %.2f A\n', min(Current));
+resultsFolder = fullfile(fileparts(mfilename('fullpath')),'Results');
+if ~isfolder(resultsFolder), mkdir(resultsFolder); end
 
-fprintf('====================================================\n');
+fig = figure('Name','Pack Current Profile');
+plot(t,PackCurrent,'LineWidth',2); grid on;
+xlabel('Time (s)'); ylabel('Pack Current (A)');
+title('Synthetic Pack Current Profile — 13S6P');
+saveas(fig,fullfile(resultsFolder,'Dynamic_ECM_Current Profile.png'));
 
-%% Plot Current Profile
-% Plot the time-varying battery current used as the input
-% to the dynamic ECM.
+fig = figure('Name','Cell Current Profile');
+plot(t,CellCurrent,'LineWidth',2); grid on;
+xlabel('Time (s)'); ylabel('Cell Current (A)');
+title('Per-Cell Current (Pack Current / Parallel Cell Count)');
+saveas(fig,fullfile(resultsFolder,'Dynamic_ECM_Cell Current Profile.png'));
 
-figure
+fig = figure('Name','Cell Terminal Voltage');
+plot(t,CellVoltage,'LineWidth',2); grid on;
+xlabel('Time (s)'); ylabel('Cell Voltage (V)');
+title('Reference Cell Terminal Voltage — 1RC ECM');
+saveas(fig,fullfile(resultsFolder,'Dynamic_ECM_Cell Terminal Voltage.png'));
 
-plot(t, Current, 'LineWidth', 2)
+fig = figure('Name','Pack Terminal Voltage');
+plot(t,PackVoltage,'LineWidth',2); grid on;
+xlabel('Time (s)'); ylabel('Pack Voltage (V)');
+title('13S6P Pack Terminal Voltage — 1RC Cell Model');
+saveas(fig,fullfile(resultsFolder,'Dynamic_ECM_Terminal Voltage.png'));
 
-grid on
+fig = figure('Name','Pack Open Circuit Voltage');
+plot(t,OCV*Pack.Ns,'LineWidth',2); grid on;
+xlabel('Time (s)'); ylabel('Pack OCV (V)');
+title('13S6P Pack Open-Circuit Voltage');
+saveas(fig,fullfile(resultsFolder,'Dynamic_ECM_Open Circuit Voltage.png'));
 
-xlabel('Time (s)')
-ylabel('Current (A)')
-title('Current Profile')
+fig = figure('Name','State of Charge');
+plot(t,SOC,'LineWidth',2); grid on;
+xlabel('Time (s)'); ylabel('SOC (fraction)');
+title('Pack State of Charge — Coulomb Counting');
+ylim([0 1]);
+saveas(fig,fullfile(resultsFolder,'Dynamic_ECM_State of Charge.png'));
 
-%% Plot Terminal Voltage
-% Plot the battery terminal-voltage response to the selected
-% dynamic current profile.
-
-figure
-
-plot(t, Voltage, 'LineWidth', 2)
-
-grid on
-
-xlabel('Time (s)')
-ylabel('Voltage (V)')
-title('Terminal Voltage')
-
-%% Plot Open-Circuit Voltage
-% Plot the variation of battery OCV resulting from the
-% changing SOC during the simulation.
-
-figure
-
-plot(t, OCV, 'LineWidth', 2)
-
-grid on
-
-xlabel('Time (s)')
-ylabel('OCV (V)')
-title('Open Circuit Voltage')
-
-%% Plot State of Charge
-% Plot the SOC trajectory calculated using Coulomb Counting
-% during the dynamic current-discharge simulation.
-
-figure
-
-plot(t, SOC, 'LineWidth', 2)
-
-grid on
-
-xlabel('Time (s)')
-ylabel('SOC')
-title('State of Charge')
+summaryFile = fullfile(resultsFolder,'Dynamic_ECM_Simulation result.txt');
+fid = fopen(summaryFile,'w');
+if fid < 0
+    warning('BMS:SummaryFileWriteFailed','Could not write simulation summary: %s',summaryFile);
+else
+    fprintf(fid,'Dynamic 1RC ECM Simulation\n');
+    fprintf(fid,'Pack configuration: %s\n',Pack.Configuration);
+    fprintf(fid,'Initial SOC: %.6f\n',SOC(1));
+    fprintf(fid,'Final SOC: %.6f\n',SOC(end));
+    fprintf(fid,'Pack current range (A): %.6f to %.6f\n',min(PackCurrent),max(PackCurrent));
+    fprintf(fid,'Cell current range (A): %.6f to %.6f\n',min(CellCurrent),max(CellCurrent));
+    fprintf(fid,'Pack voltage range (V): %.6f to %.6f\n',min(PackVoltage),max(PackVoltage));
+    fprintf(fid,'Overvoltage samples: %d\n',sum(OverVoltage));
+    fprintf(fid,'Undervoltage samples: %d\n',sum(UnderVoltage));
+    fclose(fid);
+end

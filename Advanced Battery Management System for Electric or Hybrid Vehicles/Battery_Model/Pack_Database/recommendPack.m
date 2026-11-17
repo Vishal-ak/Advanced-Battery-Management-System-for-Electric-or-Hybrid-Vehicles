@@ -1,96 +1,64 @@
-function Results = recommendPack(targetVoltage, targetCapacity, topN)
-%===========================================================
-% RECOMMEND BATTERY PACKS
-%
-% Inputs
-% -------
-% targetVoltage   : Desired voltage (V)
-% targetCapacity  : Desired capacity (Ah)
-% topN            : Number of results (default = 5)
-%
-% Output
-% -------
-% Results         : Recommended battery packs
-%===========================================================
+function Results = recommendPack(targetVoltage,targetCapacity,topN)
+%RECOMMENDPACK Rank commercial packs against voltage/capacity requirements.
+% Score is a heuristic comparison, not a safety or application-feasibility test.
 
-%% Default
-
-if nargin < 3
-    topN = 5;
+if nargin < 2 || nargin > 3
+    error('BMS:InvalidRecommendationInput', ...
+        'Usage: recommendPack(targetVoltage,targetCapacity,[topN]).');
 end
-
-%% Load Database
+if nargin < 3 || isempty(topN), topN = 5; end
+inputs = {targetVoltage,targetCapacity,topN};
+validScalars = cellfun(@(v) isnumeric(v) && isreal(v) && ...
+    isscalar(v) && isfinite(v),inputs);
+if ~all(validScalars) || targetVoltage <= 0 || ...
+        targetCapacity <= 0 || topN < 1 || fix(topN) ~= topN
+    error('BMS:InvalidRecommendationInput', ...
+        'Targets must be positive finite scalars and topN a positive integer.');
+end
 
 PackDB = loadPackDatabase();
-
-%% Volume (mm³)
-
-dim = string(PackDB.Dimensions_mm);
-
-Volume = zeros(height(PackDB),1);
-
-for k = 1:height(PackDB)
-
-    xyz = split(dim(k),"*");
-
-    if numel(xyz)==3
-
-        L = str2double(xyz(1));
-        W = str2double(xyz(2));
-        H = str2double(xyz(3));
-
-        Volume(k)=L*W*H;
-
-    else
-
-        Volume(k)=NaN;
-
-    end
-
+required = {'NominalVoltage_V','NominalCapacity_Ah','Weight_kg', ...
+    'Volume_mm3','Configuration','TotalCells','SpecificEnergy_Whkg', ...
+    'VolumetricEnergy_WhL'};
+if ~all(ismember(required,PackDB.Properties.VariableNames))
+    error('BMS:InvalidPackDatabase', ...
+        'Commercial pack database is missing one or more required columns.');
+end
+if height(PackDB) == 0
+    error('BMS:EmptyPackDatabase','No commercial pack records are available.');
 end
 
-PackDB.Volume_mm3 = Volume;
+% Discard records that cannot be compared or ranked reliably.
+valid = isfinite(PackDB.NominalVoltage_V) & PackDB.NominalVoltage_V > 0 & ...
+    isfinite(PackDB.NominalCapacity_Ah) & PackDB.NominalCapacity_Ah > 0 & ...
+    isfinite(PackDB.Weight_kg) & PackDB.Weight_kg > 0 & ...
+    isfinite(PackDB.Volume_mm3) & PackDB.Volume_mm3 > 0 & ...
+    isfinite(PackDB.TotalCells) & PackDB.TotalCells > 0;
+PackDB = PackDB(valid,:);
+if height(PackDB) == 0
+    error('BMS:NoValidPackRecords', ...
+        'No commercial pack rows contain valid voltage, capacity, mass, volume and cell-count values.');
+end
 
-%% Calculate Errors
+voltageError = abs(PackDB.NominalVoltage_V-targetVoltage);
+capacityError = abs(PackDB.NominalCapacity_Ah-targetCapacity);
+voltageScore = normalizeNonnegative(voltageError);
+capacityScore = normalizeNonnegative(capacityError);
+weightScore = normalizeNonnegative(PackDB.Weight_kg);
+volumeScore = normalizeNonnegative(PackDB.Volume_mm3);
 
-VoltageError = abs(PackDB.NominalVoltage_V - targetVoltage);
+PackDB.Score = 0.40*voltageScore + 0.30*capacityScore + ...
+    0.15*weightScore + 0.15*volumeScore;
+PackDB = sortrows(PackDB,{'Score','NominalVoltage_V','NominalCapacity_Ah'});
+Results = PackDB(1:min(topN,height(PackDB)),:);
+end
 
-CapacityError = abs(PackDB.NominalCapacity_Ah - targetCapacity);
-
-%% Normalize Errors
-
-VoltageError = VoltageError ./ max(VoltageError);
-
-CapacityError = CapacityError ./ max(CapacityError);
-
-
-
-%% Weighted Score
-
-WeightError = PackDB.Weight_kg ./ max(PackDB.Weight_kg);
-VolumeError = PackDB.Volume_mm3 ./ max(PackDB.Volume_mm3);
-
-VoltageWeight = 0.40;
-CapacityWeight = 0.30;
-WeightWeight = 0.15;
-VolumeWeight = 0.15;
-
-Score = ...
-    VoltageWeight*VoltageError + ...
-    CapacityWeight*CapacityError + ...
-    WeightWeight*WeightError + ...
-    VolumeWeight*VolumeError;
-
-PackDB.Score = Score;
-
-%% Sort
-
-PackDB = sortrows(PackDB,"Score");
-
-%% Return Best Results
-
-topN = min(topN,height(PackDB));
-
-Results = PackDB(1:topN,:);
-
+function scaled = normalizeNonnegative(values)
+% Return zeros for a constant metric; avoid division by zero.
+maximum = max(values);
+if isempty(maximum) || ~isfinite(maximum) || maximum <= 0
+    scaled = zeros(size(values));
+else
+    scaled = values./maximum;
+end
 end
