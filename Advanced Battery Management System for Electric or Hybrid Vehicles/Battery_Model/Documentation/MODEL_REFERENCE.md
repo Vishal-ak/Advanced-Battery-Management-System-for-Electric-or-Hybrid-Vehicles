@@ -6,7 +6,7 @@ This document describes the MATLAB models present in the tracked source tree. It
 
 The configured reference cell is Panasonic NCR18650B. The included Panasonic NCR18650B reference datasheet specifies 3.6 V nominal voltage, 3.35 Ah typical capacity, 3.25 Ah minimum capacity, 4.20 V charging voltage, 2.50 V discharge cutoff and 1.625 A standard charge current. Consult the exact datasheet revision stored in `Cell_Library/Panasonic_NCR18650B/Datasheet/` before hardware use.
 
-The runtime initializer uses those nominal/capacity/charge values. The configured 5 A cell discharge limit is a project modelling limit, not a maximum rating established by the referenced datasheet. The datasheet does not provide the ECM RC parameters used by this project.
+The manufacturer charge-temperature window is 0–45 °C. The datasheet footnote instructs a reduced 0.25C charge rate below 10 °C. The runtime initializer represents these as a charge-temperature window and a separate low-temperature current limit. The configured 5 A cell discharge limit is a project modelling limit, not a maximum rating established by the referenced datasheet.
 
 The project carries `InternalResistance=0.050 Ω` and ECM `R0=0.045 Ω`; neither value is established by the cell datasheet as a fixed universal resistance. R0, R1, C1, R2 and C2 require cell-characterization and parameter-identification evidence. Thermal parameters are project assumptions.
 
@@ -113,9 +113,9 @@ V_{pack}=N_sV_{cell},\qquad Q_{pack}=N_pQ_{cell}
 R_{pack}=R_{cell}\frac{N_s}{N_p},\qquad N_{cells}=N_sN_p
 ]
 
-Nominal energy is approximated as E = Vnom,pack × QAh,pack. These relationships neglect cell mismatch, interconnect resistance, cooling, balancing currents, thermal gradients and dynamic limits.
+Nominal energy is approximated as (E_{Wh}=V_{nom,pack}Q_{Ah,pack}). These relationships neglect cell mismatch, interconnect resistance, cooling, balancing currents, thermal gradients and dynamic limits.
 
-Using 3.6 V nominal and 3.35 Ah typical capacity, a 13S6P pack calculates to 46.8 V nominal, 54.6 V maximum, 32.5 V cutoff, 20.1 Ah and 940.68 Wh nominal energy. Its ideal standard charge-current scaling is 9.75 A for six parallel cells. These are model calculations, not measured pack results.
+Using 3.6 V nominal and 3.35 Ah typical capacity, a 13S6P pack calculates to 46.8 V nominal, 54.6 V maximum, 32.5 V cutoff, 20.1 Ah and 940.68 Wh nominal energy. Its ideal standard charge-current scaling is 9.75 A for six parallel cells. Below 10 °C, the manufacturer footnote specifies 0.25C per cell, corresponding to 5.025 A for six parallel cells. These are arithmetic pack limits under ideal current sharing, not measured pack results.
 
 The pack mass estimate includes cell mass plus configured pack-level hardware allowances. The volume estimate uses summed cell-envelope volume only, not complete assembled-pack volume. The custom pack design cost estimate is cell-only.
 
@@ -137,7 +137,7 @@ The code does not model resistor temperature, switching losses, cell impedance, 
 
 ## 11. Regenerative-braking current estimate
 
-The regenerative-braking function applies simple SOC and temperature derating factors and constrains charge current using a configured current level and a simplified voltage-headroom calculation. The NCR18650B charge-temperature window is represented as 0–45 °C in the current configuration, with tapering near the bounds. This is not a validated electrochemical charge-acceptance or lithium-plating model. Real charge acceptance depends on cell chemistry, condition, temperature, SOC, current history and manufacturer limits.
+The regenerative-braking function applies a project SOC derating heuristic, constrains charging to the configured 0–45 °C cell charge-temperature window, applies the manufacturer's 0.25C current limit below 10 °C, and uses a simplified pack voltage-headroom current limit. It is not a validated electrochemical charge-acceptance or lithium-plating model. Real charge acceptance depends on cell chemistry, condition, temperature, SOC, current history and manufacturer limits.
 
 ## 12. Model-validation requirements
 
