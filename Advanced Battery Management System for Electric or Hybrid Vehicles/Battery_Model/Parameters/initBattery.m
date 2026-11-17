@@ -27,7 +27,9 @@ Battery.DesignCapacity = Battery.TypicalCapacity;
 % universal fixed cell resistance; characterize versus SOC and temperature.
 Battery.InternalResistance = 0.050;  % Ohm; legacy/project parameter
 Battery.R0 = 0.045;                  % Ohm; preliminary ECM parameter
-Battery.StandardChargeCurrent = 1.625; % A; manufacturer standard charge current
+Battery.StandardChargeCurrent = 1.625; % A; manufacturer standard charge current at standard temperature
+Battery.LowTempChargeTemperatureThreshold = 10; % degC; datasheet low-temperature threshold
+Battery.LowTempChargeCurrent = 0.25*Battery.DesignCapacity; % A; 0.25C below 10 degC
 Battery.MaxDischargeCurrent = 5.0;    % A; conservative project limit, not a datasheet maximum rating
 Battery.CapacityCoulomb = Battery.DesignCapacity*3600;
 
