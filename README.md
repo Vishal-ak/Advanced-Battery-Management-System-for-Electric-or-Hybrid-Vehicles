@@ -21,7 +21,7 @@ The tracked implementation is organized around the **Panasonic NCR18650B** refer
 - Simplified regenerative-braking charge-current limit.
 - Pack consistency checks and MATLAB automated tests.
 
-The SOC workflow currently supported by the tracked core is **Coulomb counting with OCV–SOC lookup for the ECM voltage model**. An EKF/SOH implementation is not part of the verified core source inventory. Do not claim EKF SOC estimation, SOH estimation, fault diagnosis, safety-qualified protection, or an integrated Simulink model as delivered functionality unless corresponding code and validation evidence are added.
+The SOC workflow currently supported by the tracked core is **Coulomb counting with an OCV–SOC lookup for the ECM voltage model**. The OCV lookup does not correct SOC from rested voltage. An EKF/SOH estimator is not part of the verified core source inventory.
 
 ## Repository layout
 
@@ -53,8 +53,6 @@ Set MATLAB Current Folder to the canonical `Battery_Model` directory, then run:
 ```matlab
 projectPaths = setupProject();
 Battery = initBattery();
-
-% Execute the automated suite and inspect the returned test results
 results = runAllTests();
 ```
 
@@ -62,18 +60,19 @@ See [Execution Guide](Advanced%20Battery%20Management%20System%20for%20Electric%
 
 ## Documentation
 
-- [Execution guide](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/EXECUTION_GUIDE.md) — setup, tests and demonstration scripts.
-- [Model reference](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/MODEL_REFERENCE.md) — equations, conventions and modelling assumptions.
-- [Validation status](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/VALIDATION_STATUS.md) — implementation inventory, known defects and evidence needed.
+- [Execution guide](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/EXECUTION_GUIDE.md).
+- [Model reference](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/MODEL_REFERENCE.md).
+- [Validation status](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/VALIDATION_STATUS.md).
+- [Project report](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/PROJECT_REPORT.md).
 - [Reference-cell specification](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Cell_Library/Panasonic_NCR18650B/Documentation/Cell%20Specification.md).
 
-## Reference pack calculation
+## Reference pack arithmetic
 
-For an illustrative 13S6P configuration:
+For an illustrative 13S6P configuration using the Panasonic NCR18650B nominal voltage of 3.6 V:
 
 ```matlab
 Battery = initBattery();
-Pack = createBatteryPack(Battery, 13, 6, false);
+Pack = createBatteryPack(Battery,13,6,false);
 
 Pack.NominalVoltage
 Pack.MaximumVoltage
@@ -83,21 +82,19 @@ Pack.Energy_Wh
 Pack.Mass
 ```
 
-With the current runtime initialization (3.70 V nominal, 4.20 V maximum, 2.50 V cutoff, 3.35 Ah design capacity), ideal arithmetic gives 48.10 V nominal, 54.60 V maximum, 32.50 V cutoff and 20.10 Ah. Energy is 966.81 Wh. These are calculated model outputs, not measured pack performance. The current mass includes configurable pack-level hardware allowances; the volume estimate is cell-envelope-only; the cost estimate is cell-only.
+Ideal arithmetic gives 46.8 V nominal, 54.6 V maximum, 32.5 V cutoff and 20.1 Ah. Nominal energy is 940.68 Wh. A 13S6P pack is therefore a 48-V-class configuration, not 48.1 V nominal when using the NCR18650B's 3.6 V nominal rating.
+
+The pack's standard-charge-current calculation is 9.75 A for six parallel cells (6 × 1.625 A), assuming ideal current sharing. The configured 5 A per-cell discharge limit is a conservative project model limit, not a maximum discharge rating stated by the referenced datasheet.
+
+These are calculated model outputs, not measured pack performance. Mass includes configured pack-level hardware allowances; volume is based on cell-envelope geometry; estimated cost is cell-only.
 
 ## Evidence and reporting
 
-A script, plot, or test file in the repository is not proof that it was executed successfully. Record the MATLAB release, date, test counts and pass/fail status from an actual run.
+A script, plot or test file in the repository is not proof it was executed successfully. Record MATLAB release, date, test counts and pass/fail status from an actual run.
 
-Passing unit tests verifies programmed assertions only. It does not prove agreement with physical cells, correct parameter identification, battery safety, or vehicle-level performance. Distinguish:
+Passing unit tests verifies programmed assertions only. It does not prove agreement with physical cells, correct parameter identification, battery safety or vehicle-level performance. Distinguish implemented, unit-tested, calibrated, independently validated and safety-qualified.
 
-- **Implemented:** source code exists.
-- **Unit-tested:** assertions passed in a recorded run.
-- **Calibrated:** parameters fitted to traceable calibration data.
-- **Independently validated:** tested on separate measured data.
-- **Safety-qualified:** formal safety engineering and applicable assessment evidence exist.
-
-Do not report simulation outputs as experimental results. Do not claim ISO 26262 compliance, production readiness, EKF accuracy improvements, regenerative-energy recovery percentages, or voltage-spread improvements without reproducible evidence.
+Do not report simulation outputs as experimental results. Do not claim ISO 26262 compliance, production readiness, EKF accuracy improvements, regenerative-energy recovery percentages or balancing improvements without reproducible evidence.
 
 ## License and use
 
