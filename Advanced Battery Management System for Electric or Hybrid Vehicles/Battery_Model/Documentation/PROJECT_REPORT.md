@@ -35,7 +35,7 @@ The current source tree implements the following model and utility groups:
 6. **Pack design:** Bounded heuristic search for a series-parallel configuration meeting nominal-voltage and capacity targets.
 7. **Commercial-pack comparison:** Workbook loading, normalization, ranking and a custom-versus-commercial comparison report.
 8. **Supervisory demonstrations:** Idealized passive shunt balancing and simplified regenerative-braking current limits.
-9. **Simulation and reporting:** Constant, step, pulse and synthetic current profiles, plots, automated-test files and a MATLAB dashboard added on the audit branch.
+9. **Simulation and reporting:** Constant-discharge, constant-charge, step, pulse and synthetic current profiles, plots, automated-test files and a MATLAB dashboard added on the audit branch.
 
 ### Explicitly not established as delivered features
 
@@ -203,7 +203,7 @@ The audit branch introduces `simulateBatteryPack.m`. It:
 - Applies the separate low-temperature 0.25C charge limit below 10 °C.
 - Inhibits charging outside the configured charge-temperature range and inhibits discharge outside the configured discharge-temperature range.
 - Integrates cell SOC and lumped temperature and calculates pack voltage from series cell voltage.
-- Returns current, voltage, SOC, temperature and limit-status histories.
+- Limits charge/discharge current each step to prevent SOC crossing the configured operating window.\n- Returns current, voltage, SOC, temperature and limit-status histories, including SOC-boundary current limiting.
 
 These behaviours are simulation-side constraints for demonstration and testing. They are not a certified BMS protection algorithm.
 
@@ -214,12 +214,12 @@ The original repository tree did not contain a MATLAB dashboard application. The
 - Editable series and parallel cell counts.
 - Initial SOC and cell temperature inputs.
 - Ambient temperature, time step and simulation duration.
-- Synthetic drive-cycle, constant-discharge, step-discharge and pulse-discharge profiles.
+- Synthetic drive-cycle, constant-discharge, constant-charge, step-discharge and pulse-discharge profiles.
 - Pack-current and cell-current plot.
 - Pack terminal-voltage plot with configured maximum/cutoff reference lines.
 - Coulomb-counting SOC plot.
 - Lumped cell-temperature plot.
-- Run summary with SOC, voltage range, peak temperature, current range, current inhibition and voltage-limit counts.
+- Run summary with SOC, voltage range, peak temperature, current range, temperature-based inhibition, low-temperature charge derating, SOC-boundary limiting and voltage-limit counts.
 - CSV export of the time-series results.
 
 The dashboard is an offline MATLAB simulation interface. It does not communicate with a real battery pack, BMS ECU, sensors, CAN bus or charger. It has not been executed in MATLAB during this audit; UI compatibility and callback behaviour remain to be verified in the target MATLAB release.
