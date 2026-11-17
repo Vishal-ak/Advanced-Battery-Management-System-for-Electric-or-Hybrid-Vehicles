@@ -45,7 +45,7 @@ if Pack.Ns < 1 || Pack.Np < 1 || fix(Pack.Ns) ~= Pack.Ns || ...
         fix(Pack.Np) ~= Pack.Np
     error('BMS:InvalidPack','Pack Ns and Np must be positive integers.');
 end
-profileNames = ["Synthetic drive cycle","Constant discharge", ...
+profileNames = ["Synthetic drive cycle","Constant discharge","Constant charge", ...
     "Step discharge","Pulse discharge"];
 profile = string(ProfileName);
 if ~isscalar(profile) || ~any(profile == profileNames)
@@ -59,6 +59,9 @@ switch profile
     case "Constant discharge"
         cellCurrent = Battery.MaxDischargeCurrent;
         rawPackCurrent = cellCurrent*Pack.Np*ones(size(time));
+    case "Constant charge"
+        cellCurrent = Battery.StandardChargeCurrent;
+        rawPackCurrent = -cellCurrent*Pack.Np*ones(size(time));
     case "Step discharge"
         rawPackCurrent = stepCurrent(time);
     case "Pulse discharge"
