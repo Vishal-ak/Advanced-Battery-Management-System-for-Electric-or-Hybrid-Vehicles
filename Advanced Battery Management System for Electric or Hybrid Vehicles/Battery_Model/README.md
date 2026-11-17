@@ -29,7 +29,7 @@ A successful call to `runAllTests` means the automated test assertions passed in
 - **Pack:** series/parallel pack creation, arithmetic utilities, heuristic sizing, validation and pack-database comparison.
 - **Balancing:** simplified idealized passive shunt logic.
 - **Regeneration:** simplified regenerative charge-current estimate with configured current and charge-temperature limits.
-- **Simulation:** pack-scaled current profiles and a simulation service that couples ECM, SOC and thermal states.
+- **Simulation:** pack-scaled synthetic, constant-discharge, constant-charge, step and pulse current profiles; a simulation service couples ECM, SOC and thermal states and enforces configured current/SOC limits.
 - **Dashboard:** interactive MATLAB simulation UI with current, voltage, SOC and temperature plots and CSV export.
 - **Tests:** MATLAB demonstration scripts and automated unit tests.
 
@@ -52,7 +52,7 @@ The 5 A cell discharge current in the initializer is a conservative project mode
 - Pack mass includes configurable pack-level hardware estimates; volume is cell-envelope-only; estimated cost is cell-only.
 - Passive balancing and regenerative-braking algorithms are educational prototypes, not production safety functions.
 - Regenerative charge acceptance remains simplified; no electrochemical or lithium-plating model is implemented.
-- The dashboard is an offline simulation UI, not a live hardware BMS interface.
+- The dashboard is an offline simulation UI, not a live hardware BMS interface. It includes a constant-charge case and reports SOC-boundary current limiting.
 - No ISO 26262 compliance or functional-safety certification is claimed.
 - Run MATLAB tests locally before relying on a result. Repository updates do not imply runtime test success.
 
