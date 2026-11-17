@@ -12,16 +12,16 @@ which initBattery -all
 which batteryECM -all
 ```
 
-Confirm the resolved functions point into this Battery_Model tree. The setup deliberately excludes a legacy nested duplicate to avoid path shadowing.
+Confirm the resolved functions point into this Battery_Model tree.
 
 ## 2. Automated unit tests
 
 ```matlab
 results = runAllTests();
-disp(table(results));
+disp(results);
 ```
 
-The automated suite currently exercises selected ECM, SOC, thermal, 2RC, passive-balancing and regenerative-current assertions. Record the MATLAB release, date, number of tests and passed/failed/incomplete totals. Do not infer test success from the existence of test files.
+The automated suite exercises selected ECM, SOC, thermal, 2RC, passive-balancing, regenerative-current and invalid-input assertions. Record MATLAB release, date, test count and passed/failed/incomplete totals. Test files being present is not proof they have been executed.
 
 ## 3. Demonstration scripts
 
@@ -40,68 +40,76 @@ run('Tests/testRecommendPack.m')
 run('Tests/testBatteryDesigner.m')
 ```
 
-Some scripts clear the command window, workspace and figures. Run them separately, not as one combined script.
+Some scripts clear the workspace and figures. Run them separately.
 
-## 4. Core workflow examples
+## 4. Core model examples
 
 ### Cell and ECM
 
 ```matlab
 Battery = initBattery();
-SOC = 0.70;
-I = 2.0;       % A, positive means discharge
-dt = 1.0;      % s
-Vrc = 0;
-
-[Vt,Vrc,OCV,Status] = batteryECM(SOC,I,Vrc,dt,Battery);
+[Vt,Vrc,OCV,Status] = batteryECM(0.70,2.0,0,1.0,Battery);
 disp(Status)
 ```
 
 ### Coulomb-counting SOC
 
 ```matlab
-SOC0 = 0.70;
-SOC1 = coulombCounting(SOC0,2.0,60,Battery.DesignCapacity);
+SOC1 = coulombCounting(0.70,2.0,60,Battery.DesignCapacity);
 ```
 
-This is current integration only. The OCV table is used in ECM voltage prediction; no rest-based OCV correction or EKF is claimed in the core workflow.
+The implemented SOC estimator is Coulomb counting. The OCV table supplies the ECM open-circuit voltage; it does not perform rest-based SOC correction or EKF estimation.
 
-### 2RC model
+### Two-RC ECM
 
 ```matlab
 [Vt,Vrc1,Vrc2,OCV,Status] = batteryECM_2RC( ...
-    0.70,2.0,0,0,1,Battery);
+    0.70,2.0,0,0,1.0,Battery);
 ```
 
-The second polarization branch parameters are preliminary. Calibrate them before treating this model as predictive.
+The two RC-state update and 2RC terminal-voltage helper functions are included in the ECM directory. The second branch parameters are preliminary and require identification.
 
 ### Pack design
 
 ```matlab
 Pack = createBatteryPack(Battery,13,6,false);
 Validation = validatePack(Pack);
-
-% Supply application-specific limits rather than assuming universal limits
-Req.MaxPackVoltage_V = 60;
-Req.MaxPackMass_kg = 10;
-Req.MaxCellCount = 100;
-Req.MinCapacity_Ah = 20;
-Validation = validatePack(Pack,Req);
 ```
 
-The example limits are illustrative only and are not safety recommendations.
+The application-specific limits passed to `validatePack` must come from the real system requirements. Example thresholds are not safety recommendations.
 
-## 5. Known issues / caution
+## 5. Dynamic simulation: pack current versus cell current
 
-- `initCell.m` under the cell-library Scripts folder is a legacy script and refers to a `Battery.NominalCapacity` field that is not defined by the current initializer. Prefer `initBattery()` and the canonical pack functions.
-- The older reference-pack scripts contain provisional ECM values that disagree with `initBattery.m`. Do not use them as the active parameter source.
-- `BatteryDesigner` currently has a schema mismatch between the commercial recommendation table and fields expected by its formatted report. Do not rely on this end-to-end pathway until corrected and tested.
-- Commercial database score normalization can divide by zero or propagate invalid values for some datasets.
-- Low-level utility functions are not yet uniformly validated for malformed/non-finite inputs.
-- The thermal model is single-node and its Euler update needs timestep-convergence checks.
-- Pack mass includes estimates, cell-only volume and cell-only cost have limited scope.
-- No production protection, safety qualification, ISO 26262 compliance or hardware validation is provided.
+`driveCycleCurrent(t)` returns the synthetic **pack current** profile. The cell ECM is a single-cell model. For an ideal (N_p)-parallel pack:
 
-## 6. Reporting test results
+[
+I_{cell}=\frac{I_{pack}}{N_p}
+]
 
-Use the actual MATLAB test-run output. Report the MATLAB version, operating system, test date, number of tests, pass/fail/incomplete counts and any test diagnostics. Do not put an unexecuted or hypothetical result in the project report.
+The corrected `Tests/testDynamicECM.m` uses a 13S6P reference pack and divides the 8–30 A pack profile by six before applying it to the cell model. The resulting maximum discharge current is 5 A per cell, matching the configured model limit. The script starts at 80% SOC to leave headroom for its regenerative segment.
+
+On execution, the script saves updated figures and a text summary in the `Results/` folder:
+- Pack current and per-cell current.
+- Cell terminal voltage and 13S6P pack terminal voltage.
+- Pack OCV and SOC.
+- Run summary with current/voltage ranges and voltage-limit flag counts.
+
+## 6. Known limitations
+
+- The exact cell variant and parameter values need reconciliation against a traceable datasheet revision and cell-characterization data.
+- `InternalResistance=0.050 Ω` and ECM `R0=0.045 Ω` remain separate configured values and need engineering reconciliation.
+- The 2RC branch parameters are not identified from documented test data.
+- Commercial pack recommendations depend on the provenance and completeness of the workbook and remain heuristic.
+- Custom pack sizing is a bounded heuristic, not a global or safety-constrained optimizer.
+- The thermal model is single-node, uses (I^2R_0), and needs timestep-convergence and measured-data validation.
+- Pack hardware mass uses estimates; volume is cell-envelope-only and cost is cell-only.
+- Passive balancing and regenerative-braking functions are educational algorithms, not production safety functions.
+- No ISO 26262 compliance, safety certification, hardware validation or production readiness is claimed.
+
+## 7. Legacy result figures
+
+The previously committed dynamic ECM figure set was generated by applying the 8–30 A pack-current profile directly to the single-cell ECM. This exceeded the configured 5 A per-cell discharge current. Treat those older dynamic plots as legacy and non-representative. Rerun `Tests/testDynamicECM.m` to regenerate pack-scaled plots before using them in a formal report.
+
+## 8. Reporting test results
+
+Use the actual MATLAB test-run output. Report MATLAB version, operating system, test date, test count, pass/fail/incomplete counts and diagnostics. Do not insert hypothetical or unexecuted test results into the project report.
