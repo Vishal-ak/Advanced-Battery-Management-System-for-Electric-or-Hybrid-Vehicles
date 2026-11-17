@@ -9,6 +9,8 @@ verifyEqual(testCase,Battery.NominalVoltage,3.60,'AbsTol',1e-12);
 verifyEqual(testCase,Battery.TypicalCapacity,3.35,'AbsTol',1e-12);
 verifyEqual(testCase,Battery.MinimumCapacity,3.25,'AbsTol',1e-12);
 verifyEqual(testCase,Battery.StandardChargeCurrent,1.625,'AbsTol',1e-12);
+verifyEqual(testCase,Battery.LowTempChargeCurrent,0.25*3.35,'AbsTol',1e-12);
+verifyEqual(testCase,Battery.LowTempChargeTemperatureThreshold,10,'AbsTol',1e-12);
 verifyEqual(testCase,Battery.MinChargeTemperature,0,'AbsTol',1e-12);
 verifyEqual(testCase,Battery.MaxChargeTemperature,45,'AbsTol',1e-12);
 end
@@ -26,6 +28,7 @@ verifyEqual(testCase,Pack.StandardChargeCurrent,9.75,'AbsTol',1e-10);
 verifyEqual(testCase,Pack.MaxDischargeCurrent,30,'AbsTol',1e-10);
 verifyEqual(testCase,Pack.MinChargeTemperature,0);
 verifyEqual(testCase,Pack.MaxChargeTemperature,45);
+verifyEqual(testCase,Pack.LowTempChargeCurrent,5.025,'AbsTol',1e-12);
 end
 
 function testDesignPackMeetsMinimumTargets(testCase)
