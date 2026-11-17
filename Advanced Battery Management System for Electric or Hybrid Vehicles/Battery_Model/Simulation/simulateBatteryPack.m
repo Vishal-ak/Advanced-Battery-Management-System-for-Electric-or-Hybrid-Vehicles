@@ -57,7 +57,7 @@ switch profile
     case "Synthetic drive cycle"
         rawPackCurrent = driveCycleCurrent(time);
     case "Constant discharge"
-        cellCurrent = min(Battery.DesignCapacity,Battery.MaxDischargeCurrent);
+        cellCurrent = Battery.MaxDischargeCurrent;
         rawPackCurrent = cellCurrent*Pack.Np*ones(size(time));
     case "Step discharge"
         rawPackCurrent = stepCurrent(time);
