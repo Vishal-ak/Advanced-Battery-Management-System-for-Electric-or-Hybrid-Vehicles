@@ -1,7 +1,7 @@
 function Report = BatteryDesigner(targetVoltage,targetCapacity)
-%BATTERYDESIGNER Compare a commercial recommendation with a custom pack.
-% Commercial recommendations are returned as a one-row-or-more MATLAB table;
-% custom designs are scalar structures. This report normalizes their fields.
+%BATTERYDESIGNER Compare one commercial recommendation with a custom pack.
+% Commercial recommendations are returned as a table; custom designs are
+% scalar structures. Different volumetric-density bases are reported apart.
 
 if nargin ~= 2 || ~isnumeric(targetVoltage) || ~isscalar(targetVoltage) || ...
         ~isfinite(targetVoltage) || targetVoltage <= 0 || ...
@@ -23,14 +23,12 @@ if isempty(CommercialTable)
         'The commercial battery database returned no recommendation.');
 end
 Commercial = table2struct(CommercialTable(1,:));
-
 Custom = designPack(targetVoltage,targetCapacity);
 Validation = validatePack(Custom);
 
-commercialConfiguration = char(string(Commercial.Configuration));
 fprintf('\n%-25s %-16s %-16s\n','Parameter','Commercial','Custom');
 fprintf('%-25s %-16s %-16s\n','Configuration', ...
-    commercialConfiguration,char(string(Custom.Configuration)));
+    char(string(Commercial.Configuration)),char(string(Custom.Configuration)));
 fprintf('%-25s %-16.2f %-16.2f\n','Voltage (V)', ...
     Commercial.NominalVoltage_V,Custom.NominalVoltage);
 fprintf('%-25s %-16.2f %-16.2f\n','Capacity (Ah)', ...
@@ -44,8 +42,13 @@ fprintf('%-25s %-16d %-16d\n','Total cells', ...
     round(Commercial.TotalCells),Custom.TotalCells);
 fprintf('%-25s %-16.2f %-16.2f\n','Specific energy (Wh/kg)', ...
     Commercial.SpecificEnergy_Whkg,Custom.SpecificEnergy_Whkg);
-fprintf('%-25s %-16.2f %-16.2f\n','Cell/pack density (Wh/L)', ...
-    Commercial.VolumetricEnergy_WhL,Custom.EnergyDensity_WhL);
+
+% Database dimensions refer to commercial pack dimensions. The custom
+% model uses cell-envelope-only volume; these density values are not peers.
+fprintf('\nCommercial volumetric density: %.2f Wh/L (database dimensions)\n', ...
+    Commercial.VolumetricEnergy_WhL);
+fprintf('Custom volumetric density    : %.2f Wh/L (cell envelopes only; not comparable)\n', ...
+    Custom.EnergyDensity_WhL);
 
 commercialScore = abs(Commercial.NominalVoltage_V-targetVoltage)/targetVoltage + ...
     abs(Commercial.NominalCapacity_Ah-targetCapacity)/targetCapacity;
@@ -62,10 +65,14 @@ else
     reason = "Equal voltage/capacity mismatch score.";
 end
 
-fprintf('\nRecommendation by voltage/capacity match: %s\n',recommendation);
+fprintf('\nRecommendation by voltage/capacity match: %s\n',char(recommendation));
 fprintf('Reason: %s\n',reason);
-fprintf('Custom-pack consistency validation: %s\n', ...
-    string(Validation.IsValid));
+if Validation.IsValid
+    validationText = 'PASSED';
+else
+    validationText = 'FAILED';
+end
+fprintf('Custom-pack consistency validation: %s\n',validationText);
 fprintf('Validation errors: %d; warnings: %d\n', ...
     numel(Validation.Errors),numel(Validation.Warnings));
 
