@@ -21,6 +21,7 @@ This document separates manufacturer-referenced ratings from project model assum
 | Rated capacity | 3.20 | Ah | At 20 °C under stated test conditions |
 | Charging voltage | 4.20 | V | CC-CV |
 | Standard charge current | 1.625 | A | Manufacturer standard value |
+| Charge below 10 °C | 0.25C | C-rate | Datasheet footnote; use reduced current below 10 °C |
 | Discharge cutoff voltage | 2.50 | V | Datasheet test condition |
 | Maximum cell mass | 48.5 | g | Confirm datasheet revision and tube configuration |
 | Gravimetric energy density | 243 | Wh/kg | Datasheet reference value |
@@ -45,6 +46,8 @@ The active MATLAB initializer is `Parameters/initBattery.m`.
 | ECM R2 | 0.015 | Ω | Preliminary model parameter |
 | ECM C2 | 8000 | F | Preliminary model parameter |
 | Standard charge current | 1.625 | A | Datasheet standard current |
+| Low-temperature charge threshold | 10 | °C | Below this point use 0.25C |
+| Low-temperature charge current | 0.8375 | A | 0.25 × 3.35 Ah, derived per cell |
 | Maximum discharge current | 5.00 | A | Conservative project model limit; not a datasheet maximum rating |
 | Cell mass | 48.5 | g | Configured maximum-mass assumption |
 | Diameter | 18.25 | mm | Bare-cell geometric assumption |
