@@ -65,8 +65,6 @@ See [Execution Guide](Advanced%20Battery%20Management%20System%20for%20Electric%
 ## Documentation
 
 - [Execution guide](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/EXECUTION_GUIDE.md).
-- [Model reference](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/MODEL_REFERENCE.md).
-- [Project report](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Documentation/PROJECT_REPORT.md).
 - [Reference-cell specification](Advanced%20Battery%20Management%20System%20for%20Electric%20or%20Hybrid%20Vehicles/Battery_Model/Cell_Library/Panasonic_NCR18650B/Documentation/Cell%20Specification.md).
 
 ## Reference pack arithmetic
